@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vind-spotter</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #map { height: 100vh; width: 100vw; }
+
+    /* Panel */
+    .panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 3000;
+      background: rgba(255,255,255,0.93);
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20);
+      width: 720px;
+      max-width: calc(100vw - 20px);
+      font-family: system-ui, Arial, sans-serif;
+    }
+    .panel h3 { margin: 0 0 8px; font-size: 14px; }
+    .small { font-size: 12px; opacity: 0.9; margin-top: 6px; }
+    input[type="range"] { width: 100%; }
+    button { cursor: pointer; }
+
+    /* Viktig: divIcon uten default bakgrunn */
+    .wind-arrow-icon,
+    .wind-speed-icon,
+    .spot-name-icon {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ✅ Vindhastighet UTEN hvit firkant:
+       - ingen background
+       - ingen border
+       - litt text-shadow for lesbarhet */
+    .wind-speed-label {
+      font-family: system-ui, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+      text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+    }
+
+    /* ✅ Spot-navn rett over sirkelen */
+    .spot-name-label {
+      font-family: system-ui, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+      text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+    }
+
+  .weather-badge {
+    font-family: system-ui, Arial, sans-serif;
+    font-size: 22px;
+    line-height: 22px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+
+    white-space: nowrap;
+
+    /* samme lesbarhet som du bruker ellers */
+    text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+  }
+
+    /* ===== Dagsskille under slider (pen og uten overlap) ===== */
+
+.day-track {
+  position: relative;
+  height: 22px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.day-tick {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 10px;
+  background: rgba(0,0,0,0.35);
+}
+
+.day-label {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(0,0,0,0.65);
+  white-space: nowrap;
+}
+
+/* Gjør første dag litt tydeligere */
+.day-tick.first {
+  background: rgba(0,0,0,0.55);
+  height: 12px;
+}
+.day-label.first {
+  color: rgba(0,0,0,0.85);
+  font-weight: 700;
+}
+/* Dag-skiller skal ikke fange mus/touch – slideren skal få alt */
+#dayTrack,
+#dayTrack * {
+  pointer-events: none;
+}
+  </style>
+
+</head>
+
+
+
+<body>
+  <div id="map"></div>
+
+  <div class="panel">
+    <h3>Tidspunkt</h3>
+    <input id="timeSlider" type="range" min="0" max="0" value="0" step="1">
+    <div id="dayTrack" class="day-track"></div>
+    <div class="small" id="timeLabel">Laster...</div>
+   
+   
+    <div style="margin-top:8px;">
+      <span class="small" id="statusMsg"></span>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script type="module">
+    import { spots } from "./spots.js";
+
+    // ---------- Konfig ----------
+    const MAX_STEPS = 120; // ca 120 tidssteg i slider
+    const TILE_URL = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png";
+    
+
+    // ---------- UI ----------
+    const slider = document.getElementById("timeSlider");
+    const timeLabel = document.getElementById("timeLabel");
+    const statusMsg = document.getElementById("statusMsg");
+
+    // ---------- Leaflet sjekk ----------
+    if (typeof L === "undefined") {
+      timeLabel.textContent = "Feil: Leaflet lastet ikke (sjekk nett / CDN).";
+      throw new Error("Leaflet not loaded");
+    }
+
+    // ---------- Kart ----------
+    const map = L.map("map").setView([62.25, 5.6], 9);
+    L.tileLayer(TILE_URL, { attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+
+    const layer = L.layerGroup().addTo(map);
+
+    // Zoom så alle spots vises
+    const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+
+    // ---------- Hjelpefunksjoner ----------
+    function normDeg(d) { d = d % 360; return d < 0 ? d + 360 : d; }
+
+    function isInSector(dir, min, max) {
+      dir = normDeg(dir); min = normDeg(min); max = normDeg(max);
+      if (min <= max) return dir >= min && dir <= max;
+      return dir >= min || dir <= max; // krysser 0
+    }
+
+    function inRange(x, min, max) { return x >= min && x <= max; }
+
+    // Dine regler:
+    // RØD: feil retning eller utenfor min/max styrke
+    // GRØNN: innenfor ideal (og retning OK + min/max OK)
+    // GUL: ellers
+    function getStatus(windFromDir, windSpeed, spot) {
+      const dirOk = isInSector(windFromDir, spot.dirMin, spot.dirMax);
+      if (!dirOk) return { color: "red", label: "Feil retning" };
+
+      const minMaxOk = inRange(windSpeed, spot.speedMin, spot.speedMax);
+      if (!minMaxOk) return { color: "red", label: "Utenfor min/max" };
+
+      const hasIdeal = Number.isFinite(spot.speedIdealMin) && Number.isFinite(spot.speedIdealMax);
+      if (hasIdeal && inRange(windSpeed, spot.speedIdealMin, spot.speedIdealMax)) {
+        return { color: "green", label: "Ideal" };
+      }
+      return { color: "orange", label: "Innenfor min/max" };
+    }
+
+    function formatTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString("no-NO", {
+        weekday:"short", day:"2-digit", month:"2-digit", year:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      });
+    }
+
+    function floorToHour(date) {
+      const d = new Date(date);
+      d.setMinutes(0, 0, 0);
+      return d;
+    }
+
+    function findNearestTimeKey(mapByTime, targetISO, maxMinutes = 90) {
+      // mapByTime: Map(isoTime -> {windFromDir, windSpeed})
+      const target = new Date(targetISO).getTime();
+      const maxDiff = maxMinutes * 60 * 1000;
+
+      let bestKey = null;
+      let bestDiff = Infinity;
+
+      for (const key of mapByTime.keys()) {
+        const t = new Date(key).getTime();
+        const diff = Math.abs(t - target);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestKey = key;
+        }
+      }
+
+      if (bestDiff <= maxDiff) return bestKey;
+      return null; // for langt unna, da viser vi "mangler data"
+    }
+      function getNearestAtOrBefore(mapByTime, targetIso) {
+        // mapByTime: Map(isoString -> {windFromDir, windSpeed})
+        // Returnerer { time, value } for nærmeste tidspunkt <= target, eller null hvis ingen.
+
+        const target = Date.parse(targetIso);
+        if (!Number.isFinite(target)) return null;
+
+        // For ytelse: vi itererer keys (fungerer fint for få spots)
+        let bestTime = null;
+        let bestValue = null;
+
+        for (const [iso, value] of mapByTime.entries()) {
+          const t = Date.parse(iso);
+          if (!Number.isFinite(t)) continue;
+
+          if (t <= target && (bestTime === null || t > bestTime)) {
+            bestTime = t;
+            bestValue = value;
+          }
+        }
+
+        if (bestTime === null) return null;
+
+        return { time: new Date(bestTime).toISOString(), value: bestValue };
+      }
+
+    function buildFixedHourlyTimeline(days = 5) {
+      const start = floorToHour(new Date());  // nå, rundet til hel time
+      const totalHours = days * 24;
+      const arr = [];
+      for (let i = 0; i < totalHours; i++) {
+        const t = new Date(start.getTime() + i * 3600 * 1000);
+        arr.push(t.toISOString());
+      }
+      return arr;
+      }
+
+    function symbolToEmoji(symbol) {
+      if (!symbol) return "❓";
+
+      const s = symbol.toLowerCase();
+
+      // Sol / klart
+      if (s.includes("clearsky")) return "☀️";
+      if (s.includes("fair")) return "🌤️";
+
+      // Skyer
+      if (s.includes("partlycloudy")) return "⛅";
+      if (s.includes("cloudy")) return "☁️";
+
+      // Tåke
+      if (s.includes("fog")) return "🌫️";
+
+      // Regn / yr
+      if (s.includes("lightrain")) return "🌦️";
+      if (s.includes("rain") || s.includes("heavyrain")) return "🌧️";
+      if (s.includes("sleet")) return "🌨️";
+
+      // Snø
+      if (s.includes("snow")) return "❄️";
+
+      // Torden
+      if (s.includes("thunder")) return "⛈️";
+
+      // Standard fallback
+      return "🌥️";
+      }
+
+
+    // SVG vindpil – roterer etter grader
+    function windArrowIcon(rotationDeg, color) {
+      rotationDeg = normDeg(rotationDeg);
+      const svg = `
+        <svg width="34" height="34" viewBox="0 0 100 100"
+             style="transform: rotate(${rotationDeg}deg); transform-origin: 50% 50%;">
+          <polygon points="50,6 72,52 60,52 60,94 40,94 40,52 28,52"
+                   fill="${color}" stroke="black" stroke-width="4" />
+        </svg>`;
+      return L.divIcon({
+        className: "wind-arrow-icon",
+        html: svg,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+    }
+
+    // ✅ Vindhastighet-label (uten bakgrunn)
+    function windSpeedIcon(text) {
+      return L.divIcon({
+        className: "wind-speed-icon",
+        html: `<div class="wind-speed-label">${text}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [-18, 18] // litt til høyre/opp ift. punktet (juster ved behov)
+      });
+    }
+
+    // ✅ Vær-symbol til venstre for pil (emoji)
+    function weatherIcon(emoji) {
+      return L.divIcon({
+        className: "weather-icon",
+        html: `<div class="weather-badge">${emoji}</div>`,
+        iconSize: [0, 0],
+        // Plassering: VENSTRE for spot-punktet (juster hvis du vil)
+        iconAnchor: [40, 10]
+      });
+    }
+
+    // ✅ Spot-navn over sirkelen
+    function spotNameIcon(name) {
+      return L.divIcon({
+        className: "spot-name-icon",
+        html: `<div class="spot-name-label">${name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 28] // flytter teksten opp (juster ved behov)
+      });
+    }
+
+    // ---------- Data: forecast per spot ----------
+    const forecastsBySpot = {};
+    let timeline = [];
+
+    async function fetchForecastForSpot(spot) {
+      const url = `https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${spot.lat}&lon=${spot.lng}`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status} for ${spot.name}`);
+      const data = await r.json();
+
+      const ts = data?.properties?.timeseries ?? [];
+      const mapByTime = new Map();
+
+      for (const item of ts) {
+        const details = item?.data?.instant?.details;
+        if (!details) continue;
+
+        // ✅ B: hent vær-symbol for dette tidspunktet (prioriter 1t, så 6t, så 12t)
+        const symbolCode =
+          item?.data?.next_1_hours?.summary?.symbol_code ||
+          item?.data?.next_6_hours?.summary?.symbol_code ||
+          item?.data?.next_12_hours?.summary?.symbol_code ||
+          null;
+
+        const gustRaw =
+            details.wind_speed_of_gust ??
+            item?.data?.next_1_hours?.details?.wind_speed_of_gust ??
+            item?.data?.next_6_hours?.details?.wind_speed_of_gust ??
+            item?.data?.next_12_hours?.details?.wind_speed_of_gust ??
+            null;
+
+        const gust = (gustRaw === null || gustRaw === undefined) ? null : Number(gustRaw);
+
+        mapByTime.set(item.time, {
+          windFromDir: details.wind_from_direction,
+          windSpeed: details.wind_speed,
+          windGust: Number.isFinite(gust) ? gust : null,
+          symbolCode: symbolCode
+        });
+        
+        }
+        return mapByTime;
+    }
+
+
+    function buildTimelineIntersection(maps, maxSteps) {
+      const masterTimes = Array.from(maps[0].keys());
+      const common = masterTimes.filter(t => maps.every(m => m.has(t)));
+      return common.slice(0, maxSteps);
+    }
+
+   function renderAtIndex(idx) {
+        layer.clearLayers();
+
+        const t = timeline[idx];
+        if (!t) {
+          timeLabel.textContent = "Ingen tidspunkter";
+          return;
+        }
+        timeLabel.textContent = `Viser: ${formatTime(t)} (index ${idx})`;
+
+        for (const spot of spots) {
+          const mapByTime = forecastsBySpot[spot.name];
+          if (!mapByTime) continue;
+
+          // Prøv først eksakt tid, ellers fallback til nærmeste før
+          let rec = mapByTime.get(t);
+          let usedTime = t;
+
+          if (!rec) {
+            const nearest = getNearestAtOrBefore(mapByTime, t);
+            if (!nearest) continue;
+            rec = nearest.value;
+            usedTime = nearest.time;
+          }
+
+          const windFromDir = rec.windFromDir;
+          const windSpeed = rec.windSpeed;
+          const windGust = rec.windGust; // <-- vindkast fra API (kan være undefined)
+          const symbolCode = rec.symbolCode;
+          const windTo = (windFromDir + 180) % 360;
+          const status = getStatus(windFromDir, windSpeed, spot);
+          // ✅ Vindkast-tekst i parentes, avrundet til heltall (vises bare hvis finnes)
+          const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
+          console.log(
+            spot.name,
+            "usedTime:", usedTime,
+            "windSpeed:", windSpeed,
+            "windGust(raw):", rec.windGust,
+            "windGust(num):", Number(rec.windGust),
+            "gustTxt:", gustTxt
+            );
+
+          // (valgfritt) vis ikon hvis du bruker det andre steder:
+          // const emoji = symbolToEmoji(symbolCode);
+
+          L.circleMarker([spot.lat, spot.lng], {
+            color: status.color,
+            radius: 10,
+            weight: 3,
+            fillOpacity: 0.20
+          })
+          .addTo(layer)
+          .bindPopup(
+            `<b>${spot.name}</b><br>` +
+            `Tid: ${formatTime(usedTime)}<br>` +
+            `Vind fra: ${Math.round(windFromDir)}°<br>` +
+            `Vind til: ${Math.round(windTo)}°<br>` +
+            `Styrke: ${windSpeed.toFixed(1)}${gustTxt} m/s<br>` +
+            `Status: ${status.label}`
+          );
+
+          // Spot-navn
+          L.marker([spot.lat, spot.lng], {
+            icon: spotNameIcon(spot.name),
+            interactive: false,
+            zIndexOffset: 1300
+          }).addTo(layer);
+
+        const emoji = symbolToEmoji(symbolCode);
+
+          // ✅ Vær-symbol til venstre for pil
+          L.marker([spot.lat, spot.lng], {
+            icon: weatherIcon(emoji),
+            interactive: false,
+            zIndexOffset: 1190
+          }).addTo(layer);
+
+          // ✅ Vindpil (samme farge som status)
+          L.marker([spot.lat, spot.lng], {
+            icon: windArrowIcon(windTo, status.color),
+            interactive: false,
+            zIndexOffset: 1200
+          }).addTo(layer);
+
+          L.marker([spot.lat, spot.lng], {
+            icon: windSpeedIcon(`${windSpeed.toFixed(1)}${gustTxt} m/s`),
+            interactive: false,
+            zIndexOffset: 1250
+          }).addTo(layer);
+
+        }
+      }
+
+
+    async function loadAll() {
+      statusMsg.textContent = "Laster...";
+      timeLabel.textContent = "Henter varsler...";
+      layer.clearLayers();
+
+      const maps = await Promise.all(spots.map(fetchForecastForSpot));
+
+      spots.forEach((spot, i) => { forecastsBySpot[spot.name] = maps[i]; });
+
+      timeline = buildFixedHourlyTimeline(5); // 5 dager * 24 timer = 120 steg
+     function buildDaySeparators(timeline) {
+      const dayTrack = document.getElementById("dayTrack");
+      if (!dayTrack) return;
+
+      dayTrack.innerHTML = "";
+      if (!timeline || timeline.length < 2) return;
+
+      // Vi bruker timeline som "sannhet" og finner posisjon i %
+      // ved å mappe en dato/tid til nærmeste index i timeline.
+      const maxIndex = timeline.length - 1;
+
+      // Helper: finn index i timeline for et gitt tidspunkt (ms)
+      function findIndexForTimeMs(targetMs) {
+        // timeline er sortert time-for-time, så lineær søk er ok (120 elementer)
+        let bestI = 0;
+        let bestDiff = Infinity;
+        for (let i = 0; i < timeline.length; i++) {
+          const tMs = Date.parse(timeline[i]);
+          const diff = Math.abs(tMs - targetMs);
+          if (diff < bestDiff) { bestDiff = diff; bestI = i; }
+    }
+    return bestI;
+  }
+
+  // Label-format (dato)
+  const fmtDate = (d) =>
+    d.toLocaleDateString("no-NO", { weekday: "short", day: "2-digit", month: "2-digit" });
+
+  // Start og slutt basert på timeline
+  const startMs = Date.parse(timeline[0]);
+  const endMs   = Date.parse(timeline[maxIndex]);
+
+  // Finn første lokale midnatt (00:00) ETTER eller LIK timeline-start
+  const startDate = new Date(startMs);
+  const firstMidnight = new Date(startDate);
+  firstMidnight.setHours(0, 0, 0, 0);
+
+  // hvis timeline starter etter midnatt samme dag, gå til neste midnatt
+  if (firstMidnight.getTime() < startMs) {
+    firstMidnight.setDate(firstMidnight.getDate() + 1);
+  }
+
+  // Lag ticks for hver midnatt innenfor tidsvinduet
+  let d = firstMidnight;
+  let isFirst = true;
+
+  while (d.getTime() <= endMs) {
+    const idx = findIndexForTimeMs(d.getTime());
+    const leftPct = (idx / maxIndex) * 100;
+
+    const tick = document.createElement("div");
+    tick.className = "day-tick" + (isFirst ? " first" : "");
+    tick.style.left = leftPct + "%";
+    dayTrack.appendChild(tick);
+
+    const label = document.createElement("div");
+    label.className = "day-label" + (isFirst ? " first" : "");
+    label.style.left = leftPct + "%";
+    label.textContent = fmtDate(d);
+    dayTrack.appendChild(label);
+
+    // neste døgn (lokal tid)
+    d = new Date(d);
+    d.setDate(d.getDate() + 1);
+    isFirst = false;
+  }
+}
+
+      slider.min = 0;
+      slider.max = timeline.length - 1;
+      slider.value = 0;
+
+      // bygg dagskille-linje
+      buildDaySeparators(timeline);
+
+      renderAtIndex(0);
+
+      statusMsg.textContent = "";
+    }
+
+    // Events
+    slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
+   
+    // Start
+    loadAll().catch(err => {
+      console.error(err);
+      statusMsg.textContent = "Feil";
+      timeLabel.textContent = "Kunne ikke laste data. Se Console (F12).";
+    });
+  </script>
+</body>
+</html>
