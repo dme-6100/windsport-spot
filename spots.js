@@ -46,7 +46,7 @@ export const spots = [
     name: "Flø",
     lat: 62.40789114104769,
     lng: 5.840585929494764,
-    dirMin: 270,
+    dirMin: 240,
     dirMax: 70,
   }),
 
