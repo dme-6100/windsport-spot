@@ -13,25 +13,42 @@
     html, body { height: 100%; margin: 0; }
     #map { height: 100vh; width: 100vw; }
 
+    
     /* Panel */
     .panel {
       position: absolute;
-      top: 10px;
       left: 10px;
+      right: 10px;  /* <-- gjør at den kan fylle pent i bredden */
+      bottom: calc(10px + env(safe-area-inset-bottom)); /* <-- safe area */
       z-index: 3000;
+
       background: rgba(255,255,255,0.93);
       border: 1px solid rgba(0,0,0,0.2);
       border-radius: 12px;
       padding: 10px 12px;
       box-shadow: 0 8px 18px rgba(0,0,0,0.20);
-      width: 720px;
-      max-width: calc(100vw - 20px);
+
+      max-width: 720px; /* <-- beholder maksbredden */
+      margin: 0 auto;   /* <-- sentrerer */
       font-family: system-ui, Arial, sans-serif;
     }
-    .panel h3 { margin: 0 0 8px; font-size: 14px; }
-    .small { font-size: 12px; opacity: 0.9; margin-top: 6px; }
-    input[type="range"] { width: 100%; }
-    button { cursor: pointer; }
+      /* Gjør "Tidspunkt" (h3) lik timeLabel */
+    .panel h3 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Aktuell tid – match h3 */
+    #timeLabel {
+      margin: 0 0 10px 0;  /* litt luft før slider */
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      opacity: 1;
+    }
 
     /* Viktig: divIcon uten default bakgrunn */
     .wind-arrow-icon,
@@ -77,8 +94,8 @@
 
   .weather-badge {
     font-family: system-ui, Arial, sans-serif;
-    font-size: 22px;
-    line-height: 22px;
+    font-size: 34px;
+    line-height: 34px;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -92,18 +109,31 @@
 
     /* ===== Dagsskille under slider (pen og uten overlap) ===== */
 
+.slider-wrap {
+  position: relative;
+  width: 100%;
+}
+
+#timeSlider {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+}
+
 .day-track {
   position: relative;
+  width: 100%;   /* viktig: samme bredde som slideren */
   height: 22px;
   margin-top: 6px;
   margin-bottom: 2px;
 }
 
+
 .day-tick {
   position: absolute;
   top: 0;
-  width: 2px;
-  height: 10px;
+  width: 3px;
+  height: 14px;
   background: rgba(0,0,0,0.35);
 }
 
@@ -111,7 +141,7 @@
   position: absolute;
   top: 10px;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: 18px;
   color: rgba(0,0,0,0.65);
   white-space: nowrap;
 }
@@ -119,17 +149,68 @@
 /* Gjør første dag litt tydeligere */
 .day-tick.first {
   background: rgba(0,0,0,0.55);
-  height: 12px;
+  height: 16px;
 }
+
 .day-label.first {
   color: rgba(0,0,0,0.85);
+  font-size: 18px;
   font-weight: 700;
 }
+
+
+/* Aktuell dato/tid (under slider) – midtstilt + mer luft over */
+#timeLabel {
+  text-align: center;
+  font-size: 18px;      /* juster etter smak */
+  font-weight: 700;
+  opacity: 1;
+
+  margin-top: 12px;     /* <-- mer luft over */
+  margin-bottom: 2px;   /* valgfritt: litt luft under */
+}
+
 /* Dag-skiller skal ikke fange mus/touch – slideren skal få alt */
 #dayTrack,
+
 #dayTrack * {
   pointer-events: none;
 }
+
+/* Større og mer finger-vennlig tidslinje-thumb */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;               /* selve linjen */
+  border-radius: 4px;
+  background: #ccc;
+}
+
+/* iOS / Safari / Chrome */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;               /* ← størrelse på sirkelen */
+  height: 26px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+
   </style>
 
 </head>
@@ -141,11 +222,9 @@
 
   <div class="panel">
     <h3>Tidspunkt</h3>
+    <div class="small" id="timeLabel">Laster...</div>
     <input id="timeSlider" type="range" min="0" max="0" value="0" step="1">
     <div id="dayTrack" class="day-track"></div>
-    <div class="small" id="timeLabel">Laster...</div>
-   
-   
     <div style="margin-top:8px;">
       <span class="small" id="statusMsg"></span>
     </div>
@@ -214,10 +293,19 @@
 
     function formatTime(iso) {
       const d = new Date(iso);
-      return d.toLocaleString("no-NO", {
-        weekday:"short", day:"2-digit", month:"2-digit", year:"numeric",
-        hour:"2-digit", minute:"2-digit"
-      });
+
+      // Ukedag kort på norsk, med punktum (søn.)
+      const weekday = d.toLocaleDateString("no-NO", { weekday: "short" });
+
+      // Dato som 26/4 (uten ledende null)
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+
+      // Klokke som 12:00 (alltid to siffer på time)
+      const hour = String(d.getHours()).padStart(2, "0");
+      const time = `${hour}:00`;
+
+      return `${weekday} ${day}/${month} -${time}`;
     }
 
     function floorToHour(date) {
@@ -422,7 +510,7 @@
           timeLabel.textContent = "Ingen tidspunkter";
           return;
         }
-        timeLabel.textContent = `Viser: ${formatTime(t)} (index ${idx})`;
+        timeLabel.textContent = `${formatTime(t)} `;
 
         for (const spot of spots) {
           const mapByTime = forecastsBySpot[spot.name];
