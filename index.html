@@ -247,7 +247,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:";
+      const CACHE_PREFIX = "omForecast:v2:";
       
 
       // ---------- Konfig ----------
@@ -535,7 +535,8 @@ const url =
   `&longitude=${spot.lng}` +
   "&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
   "&timezone=UTC" +
-  "&forecast_days=5";
+  "&forecast_days=5" +
+  "&windspeed_unit=ms";
 
   // 3) Fetch + retry ved 429
   let r = await fetch(url);
