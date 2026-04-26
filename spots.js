@@ -42,7 +42,7 @@ export const spots = [
     dirMin: 100,
     dirMax: 250,
     seaBreeze: true,
-    alarmText: "UTRØNA ALARM"
+    alarmText: "UTRØNA-ALARM"
   }),
 
   // Krysser 0° (270 -> 70) er helt OK i logikken din
@@ -69,7 +69,7 @@ export const spots = [
     dirMin: 100,
     dirMax: 250,
     seaBreeze: true,
-    alarmText: "UTRØNA ALARM"
+    alarmText: "UTRØNA-ALARM"
   }),
 
   makeSpot({
@@ -187,7 +187,7 @@ export const spots = [
     dirMin: 200,
     dirMax: 300,
     seaBreeze: true,
-    alarmText: "UTRØNA ALARM"
+    alarmText: "UTRØNA-ALARM"
   }),
 
 ];
