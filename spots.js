@@ -4,7 +4,7 @@
 
 // ===== Globale vindstyrkegrenser (m/s) =====
 export const WIND_SPEED_MIN = 6;
-export const WIND_SPEED_MAX = 17;
+export const WIND_SPEED_MAX = 19;
 export const WIND_SPEED_IDEAL_MIN = 7;
 export const WIND_SPEED_IDEAL_MAX = 12;
 
