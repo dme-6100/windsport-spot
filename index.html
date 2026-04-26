@@ -107,6 +107,28 @@
     text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
   }
 
+
+.alarm-badge {
+  font-family: system-ui, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #277556;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  white-space: nowrap;
+   /* litt lesbarhet over kartet */
+    text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+  }
+
+  /* sørg for at Leaflet-divIcon ikke får bakgrunn */
+  .alarm-icon {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
     /* ===== Dagsskille under slider (pen og uten overlap) ===== */
 
 .slider-wrap {
@@ -239,6 +261,11 @@ input[type="range"]::-moz-range-thumb {
 
   <script type="module">
       import { spots } from "./spots.js";
+      // --- TEST (fjern når det virker) ---
+      const u = spots.find(s => s.name.includes("Utrøna"));
+      console.log("TEST Utrøna spot:", u);
+      console.log("TEST seaBreeze/alarmText:", u?.seaBreeze, u?.alarmText);
+      // -------------------------------
 
       
     function sleep(ms) {
@@ -291,19 +318,30 @@ input[type="range"]::-moz-range-thumb {
     // RØD: feil retning eller utenfor min/max styrke
     // GRØNN: innenfor ideal (og retning OK + min/max OK)
     // GUL: ellers
-    function getStatus(windFromDir, windSpeed, spot) {
-      const dirOk = isInSector(windFromDir, spot.dirMin, spot.dirMax);
-      if (!dirOk) return { color: "red", label: "Feil retning" };
+    // SVART hvis over max
+        function getStatus(windFromDir, windSpeed, spot) {
+        // ✅ 0) Over max vindstyrke => SVART (uansett retning)
+        if (Number.isFinite(windSpeed) && Number.isFinite(spot.speedMax) && windSpeed > spot.speedMax) {
+          return { color: "black", label: "Over max" };
+        }
 
-      const minMaxOk = inRange(windSpeed, spot.speedMin, spot.speedMax);
-      if (!minMaxOk) return { color: "red", label: "Utenfor min/max" };
+        // 1) Retning må være OK
+        const dirOk = isInSector(windFromDir, spot.dirMin, spot.dirMax);
+        if (!dirOk) return { color: "red", label: "Feil retning" };
 
-      const hasIdeal = Number.isFinite(spot.speedIdealMin) && Number.isFinite(spot.speedIdealMax);
-      if (hasIdeal && inRange(windSpeed, spot.speedIdealMin, spot.speedIdealMax)) {
-        return { color: "green", label: "Ideal" };
+        // 2) Min/max vindstyrke
+        const minMaxOk = inRange(windSpeed, spot.speedMin, spot.speedMax);
+        if (!minMaxOk) return { color: "red", label: "Utenfor min/max" };
+
+        // 3) Grønn kun hvis innenfor ideal
+        const hasIdeal = Number.isFinite(spot.speedIdealMin) && Number.isFinite(spot.speedIdealMax);
+        if (hasIdeal && inRange(windSpeed, spot.speedIdealMin, spot.speedIdealMax)) {
+          return { color: "green", label: "Ideal" };
+        }
+
+        // 4) Ellers gul
+        return { color: "orange", label: "Innenfor min/max" };
       }
-      return { color: "orange", label: "Innenfor min/max" };
-    }
 
     function formatTime(iso) {
       const d = new Date(iso);
@@ -385,45 +423,62 @@ input[type="range"]::-moz-range-thumb {
       return arr;
       }
 
-    function symbolToEmoji(code) {
-  // Open‑Meteo weathercode (WMO-style)
-  // 0: clear, 1-3: clouds, 45/48: fog
-  // 51-57: drizzle, 61-67: rain/freezing rain, 71-77: snow/grains
-  // 80-82: rain showers, 85-86: snow showers
-  // 95-99: thunderstorm (+hail)
-  switch (Number(code)) {
-    case 0: return "☀️";
+ 
+function isNightLocal(isoTime) {
+  // Lokal tid (din PC/iPhone)
+  const h = new Date(isoTime).getHours();
+  return (h < 6 || h >= 22); // natt 22–06 (juster om du vil)
+}
+
+function symbolToEmoji(code, isoTime) {
+  const c = Number(code);
+  const night = isoTime ? isNightLocal(isoTime) : false;
+
+  switch (c) {
+    // Klart
+    case 0: return night ? "🌙" : "☀️";
+
+    // Nesten klart / delvis klart
     case 1:
-    case 2: return "🌤️";
+    case 2: return night ? "🌙" : "🌤️";
+
+    // Skyet
     case 3: return "☁️";
 
+    // Tåke
     case 45:
     case 48: return "🌫️";
 
+    // Yr
     case 51:
     case 53:
     case 55:
     case 56:
     case 57: return "🌦️";
 
+    // Regn / underkjølt regn
     case 61:
     case 63:
     case 65:
     case 66:
     case 67: return "🌧️";
 
+    // Snø
     case 71:
     case 73:
     case 75:
     case 77: return "❄️";
 
+    // Regnbyger
     case 80:
     case 81:
     case 82: return "🌧️";
 
+    // Snøbyger
     case 85:
     case 86: return "❄️";
 
+    // Torden
     case 95:
     case 96:
     case 99: return "⛈️";
@@ -471,6 +526,16 @@ input[type="range"]::-moz-range-thumb {
         iconAnchor: [40, 10]
       });
     }
+
+      function alarmIcon(text) {
+    return L.divIcon({
+      className: "alarm-icon",
+      html: `<div class="alarm-badge">${text}</div>`,
+      iconSize: [0, 0],
+      // litt til venstre (vi finjusterer evt etterpå)
+      iconAnchor: [40, 45]
+    });
+  }
 
     // ✅ Spot-navn over sirkelen
     function spotNameIcon(name) {
@@ -585,7 +650,38 @@ const url =
       return common.slice(0, maxSteps);
     }
 
-   function renderAtIndex(idx) {
+
+    // Vind fra VEST -> NORD (270° -> 30°), krysser 0°
+    const SEA_BREEZE_DIR_MIN = 230;
+    const SEA_BREEZE_DIR_MAX = 30;
+
+    // Sol = Open-Meteo weathercode 0..2 (klart / stort sett klart)
+    function isSunny(symbolCode) {
+      const c = Number(symbolCode);
+      return c === 0 || c === 1 || c === 2;
+
+    }
+
+    function isBetweenHoursLocal(isoTime, startHour, endHour) {
+      // isoTime er ISO-string (UTC) i timeline/usedTime. new Date(...) gir lokal tid i getHours()
+      const h = new Date(isoTime).getHours();
+      // Inkluderer 12:00, ekskluderer 20:00 (dvs. 12:00–19:59)
+      return h >= startHour && h < endHour;
+    }
+
+    // Solgangsbris-regel: kun retning + sol (vindstyrke ignoreres)
+    function seaBreezeOverrideOk(spot, windFromDir, symbolCode, isoTime) {
+      if (!spot.seaBreeze) return false;
+      if (!isSunny(symbolCode)) return false;
+
+      // ✅ Kun mellom kl 12 og 20 (lokal tid)
+      if (!isBetweenHoursLocal(isoTime, 12, 20)) return false;
+
+      // ✅ Kun riktig retning (vest/nord-sektor)
+      return isInSector(windFromDir, SEA_BREEZE_DIR_MIN, SEA_BREEZE_DIR_MAX);
+    }
+        
+      function renderAtIndex(idx) {
         layer.clearLayers();
 
         const t = timeline[idx];
@@ -593,7 +689,7 @@ const url =
           timeLabel.textContent = "Ingen tidspunkter";
           return;
         }
-        timeLabel.textContent = `${formatTime(t)} `;
+        timeLabel.textContent = `${formatTime(t)}`;
 
         for (const spot of spots) {
           const mapByTime = forecastsBySpot[spot.name];
@@ -611,32 +707,39 @@ const url =
           }
 
           const windFromDir = rec.windFromDir;
-          const windSpeed = rec.windSpeed;
-          const windGust = rec.windGust; // <-- vindkast fra API (kan være undefined)
-          const symbolCode = rec.symbolCode;
-          const windTo = (windFromDir + 180) % 360;
-          const status = getStatus(windFromDir, windSpeed, spot);
-          // ✅ Vindkast-tekst i parentes, avrundet til heltall (vises bare hvis finnes)
-          
-        // Vindkast-tekst i parentes
-        const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
+          const windSpeed   = rec.windSpeed;
+          const windGust    = rec.windGust;
+          const symbolCode  = rec.symbolCode;
+          const windTo      = (windFromDir + 180) % 360;
 
-        // ✅ rød tekst hvis kast > 40% over middel
-        const gustHigh = (Number.isFinite(windGust) && windSpeed > 0 && windGust > windSpeed * 1.4);
-        const speedClass = gustHigh ? "gust-high" : "";
+          // Normal status (rød/gul/grønn/svart)
+          let status = getStatus(windFromDir, windSpeed, spot);
 
+          // ✅ Solgangsbris: sol + vind fra vest→nord (uansett styrke)
+          const seaBreezeOk = seaBreezeOverrideOk(spot, windFromDir, symbolCode, usedTime);
+          if (seaBreezeOk) {
+            status = { color: "green", label: "Solgangsbris" };
+          }
 
-          // (valgfritt) vis ikon hvis du bruker det andre steder:
-          // const emoji = symbolToEmoji(symbolCode);
+          // Vindkast i parentes
+          const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
 
-          L.circleMarker([spot.lat, spot.lng], {
+          // Alarm kun når solgangsbris er aktiv og spot har alarmText
+          const alarmLine =
+            (seaBreezeOk && spot.alarmText)
+              ? `<div style="color:#d00000;font-weight:900;">${spot.alarmText}</div>`
+              : "";
+
+          // Sirkel
+          const circle = L.circleMarker([spot.lat, spot.lng], {
             color: status.color,
             radius: 10,
             weight: 3,
             fillOpacity: 0.20
-          })
-          .addTo(layer)
-          .bindPopup(
+          }).addTo(layer);
+
+          circle.bindPopup(
+            alarmLine +
             `<b>${spot.name}</b><br>` +
             `Tid: ${formatTime(usedTime)}<br>` +
             `Vind fra: ${Math.round(windFromDir)}°<br>` +
@@ -652,30 +755,41 @@ const url =
             zIndexOffset: 1300
           }).addTo(layer);
 
-        const emoji = symbolToEmoji(symbolCode);
+          // Vær-emoji
+          const emoji = symbolToEmoji(symbolCode);
 
-          // ✅ Vær-symbol til venstre for pil
+          // ✅ Alarmtekst til venstre for værsymbolet når solgangsbris trigges
+          if (seaBreezeOk && spot.alarmText) {
+            L.marker([spot.lat, spot.lng], {
+              icon: alarmIcon(spot.alarmText),
+              interactive: false,
+              zIndexOffset: 1185
+            }).addTo(layer);
+          }
+
+          // Værikon
           L.marker([spot.lat, spot.lng], {
             icon: weatherIcon(emoji),
             interactive: false,
             zIndexOffset: 1190
           }).addTo(layer);
 
-          // ✅ Vindpil (samme farge som status)
+          // Vindpil (samme farge som status – blir grønn ved solgangsbris)
           L.marker([spot.lat, spot.lng], {
             icon: windArrowIcon(windTo, status.color),
             interactive: false,
             zIndexOffset: 1200
           }).addTo(layer);
 
+          // Vindtekst
           L.marker([spot.lat, spot.lng], {
             icon: windSpeedIcon(`${windSpeed.toFixed(1)}${gustTxt} m/s`),
             interactive: false,
             zIndexOffset: 1250
           }).addTo(layer);
-
         }
       }
+
 
       async function mapWithConcurrency(items, limit, mapper) {
         const results = new Array(items.length);
