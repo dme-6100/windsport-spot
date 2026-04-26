@@ -31,7 +31,7 @@ export const spots = [
     name: "Koparstad",
     lat: 62.33516743664832,
     lng: 5.577218252855619,
-    dirMin: 200,
+    dirMin: 180,
     dirMax: 280,
   }),
 
