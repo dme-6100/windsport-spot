@@ -260,12 +260,8 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-1";
-      // --- TEST (fjern når det virker) ---
-      const u = spots.find(s => s.name.includes("Utrøna"));
-      console.log("TEST Utrøna spot:", u);
-      console.log("TEST seaBreeze/alarmText:", u?.seaBreeze, u?.alarmText);
-      // -------------------------------
+      import { spots } from "./spots.js?v=2026-04-26-4";
+    
 
       
     function sleep(ms) {
@@ -274,7 +270,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v2:";
+      const CACHE_PREFIX = "omForecast:v5:";
       
 
       // ---------- Konfig ----------
@@ -594,14 +590,15 @@ async function fetchForecastForSpot(spot) {
   }
 
 // 2) Riktig URL (bruk & i JavaScript)
-const url =
-  "https://api.open-meteo.com/v1/forecast" +
-  `?latitude=${spot.lat}` +
-  `&longitude=${spot.lng}` +
-  "&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
-  "&timezone=UTC" +
-  "&forecast_days=5" +
-  "&windspeed_unit=ms";
+  const url =
+    "https://api.open-meteo.com/v1/forecast" +
+    `?latitude=${spot.lat}` +
+    `&longitude=${spot.lng}` +
+    "&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
+    "&forecast_days=6" +
+    "&windspeed_unit=ms" +
+    "&timeformat=unixtime" +
+    "&timezone=Europe/Oslo";
 
   // 3) Fetch + retry ved 429
   let r = await fetch(url);
@@ -617,25 +614,26 @@ const url =
 
   const data = await r.json();
 
-  // 4) Parse
-  const times = data.hourly.time;
-  const speeds = data.hourly.wind_speed_10m;
-  const gusts  = data.hourly.wind_gusts_10m;
-  const dirs   = data.hourly.wind_direction_10m;
-  const codes  = data.hourly.weathercode;
+    // 4) Parse (timeformat=unixtime => time er sekunder)
+    const times  = data.hourly.time;                 // unix seconds (array of numbers)
+    const speeds = data.hourly.wind_speed_10m;
+    const gusts  = data.hourly.wind_gusts_10m;
+    const dirs   = data.hourly.wind_direction_10m;
+    const codes  = data.hourly.weathercode;
 
-  const mapByTime = new Map();
+    const mapByTime = new Map();
 
-  for (let i = 0; i < times.length; i++) {
-    // Open-Meteo time kommer som "YYYY-MM-DDTHH:MM"
-    // Vi normaliserer til ISO (UTC) slik at den matcher resten av koden din.
-    mapByTime.set(new Date(times[i]).toISOString(), {
-      windSpeed: Number(speeds[i]),
-      windGust: Number.isFinite(Number(gusts[i])) ? Number(gusts[i]) : null,
-      windFromDir: Number(dirs[i]),
-      symbolCode: codes[i] // dette er weathercode (tall)
-    });
-  }
+    for (let i = 0; i < times.length; i++) {
+      // times[i] er sekunder -> ms -> ISO (UTC)
+      const isoKey = new Date(Number(times[i]) * 1000).toISOString();
+
+      mapByTime.set(isoKey, {
+        windSpeed: Number(speeds[i]),
+        windGust: Number.isFinite(Number(gusts[i])) ? Number(gusts[i]) : null,
+        windFromDir: Number(dirs[i]),
+        symbolCode: Number(codes[i]) // weathercode som tall
+      });
+    }
 
   // 5) Lagre i cache
   saveCache(key, mapByTime);
@@ -681,6 +679,47 @@ const url =
       return isInSector(windFromDir, SEA_BREEZE_DIR_MIN, SEA_BREEZE_DIR_MAX);
     }
         
+    function getYrBinLocal(isoTime) {
+  const d = new Date(isoTime);         // lokal tid
+  const h = d.getHours();
+
+  // Yr-bins: 02–08, 08–14, 14–20, 20–02
+  if (h >= 2 && h < 8)  return { start: 2,  end: 8 };
+  if (h >= 8 && h < 14) return { start: 8,  end: 14 };
+  if (h >= 14 && h < 20) return { start: 14, end: 20 };
+  return { start: 20, end: 26 }; // 20–02 (26 betyr 02 neste dag)
+}
+
+function collectSpeedsForBin(mapByTime, isoTime) {
+  const d = new Date(isoTime);
+  const bin = getYrBinLocal(isoTime);
+
+  // Start på dagens dato kl bin.start
+  const start = new Date(d);
+  start.setMinutes(0,0,0);
+  start.setHours(bin.start % 24, 0, 0, 0);
+
+  // Slutt: hvis end=26 => 02 neste dag
+  const end = new Date(start);
+  end.setHours((bin.end % 24), 0, 0, 0);
+  if (bin.end > 24) end.setDate(end.getDate() + 1);
+
+  const arr = [];
+  for (let t = new Date(start); t < end; t.setHours(t.getHours()+1)) {
+    const key = t.toISOString();
+    const rec = mapByTime.get(key);
+    if (rec && Number.isFinite(rec.windSpeed)) arr.push(rec.windSpeed);
+  }
+  return arr;
+}
+
+    function binWindValue(mapByTime, isoTime, mode="max") {
+      const arr = collectSpeedsForBin(mapByTime, isoTime);
+      if (!arr.length) return null;
+      if (mode === "avg") return arr.reduce((a,b)=>a+b,0) / arr.length;
+      return Math.max(...arr); // "max"
+    }
+
       function renderAtIndex(idx) {
         layer.clearLayers();
 
@@ -708,12 +747,14 @@ const url =
 
           const windFromDir = rec.windFromDir;
           const windSpeed   = rec.windSpeed;
+          const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
+          const displayWind = (yrLike !== null) ? yrLike : windSpeed;
           const windGust    = rec.windGust;
           const symbolCode  = rec.symbolCode;
           const windTo      = (windFromDir + 180) % 360;
 
           // Normal status (rød/gul/grønn/svart)
-          let status = getStatus(windFromDir, windSpeed, spot);
+          let status = getStatus(windFromDir, displayWind, spot);
 
           // ✅ Solgangsbris: sol + vind fra vest→nord (uansett styrke)
           const seaBreezeOk = seaBreezeOverrideOk(spot, windFromDir, symbolCode, usedTime);
@@ -727,7 +768,7 @@ const url =
           // Alarm kun når solgangsbris er aktiv og spot har alarmText
           const alarmLine =
             (seaBreezeOk && spot.alarmText)
-              ? `<div style="color:#d00000;font-weight:900;">${spot.alarmText}</div>`
+              ? `<div style="color:#277556;font-weight:900;">${spot.alarmText}</div>`
               : "";
 
           // Sirkel
@@ -744,7 +785,7 @@ const url =
             `Tid: ${formatTime(usedTime)}<br>` +
             `Vind fra: ${Math.round(windFromDir)}°<br>` +
             `Vind til: ${Math.round(windTo)}°<br>` +
-            `Styrke: ${windSpeed.toFixed(1)}${gustTxt} m/s<br>` +
+            `Styrke: ${displayWind.toFixed(1)}${gustTxt} m/s<br>` +
             `Status: ${status.label}`
           );
 
@@ -756,7 +797,7 @@ const url =
           }).addTo(layer);
 
           // Vær-emoji
-          const emoji = symbolToEmoji(symbolCode);
+          const emoji = symbolToEmoji(symbolCode, usedTime);
 
           // ✅ Alarmtekst til venstre for værsymbolet når solgangsbris trigges
           if (seaBreezeOk && spot.alarmText) {
@@ -783,7 +824,7 @@ const url =
 
           // Vindtekst
           L.marker([spot.lat, spot.lng], {
-            icon: windSpeedIcon(`${windSpeed.toFixed(1)}${gustTxt} m/s`),
+            icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
             interactive: false,
             zIndexOffset: 1250
           }).addTo(layer);
