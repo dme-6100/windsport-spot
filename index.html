@@ -260,7 +260,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-6";
+      import { spots } from "./spots.js?v=2026-04-26-7";
       
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -268,7 +268,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v6:"; // forandre versjon og siste siffer i 2026-04-26-6";
+      const CACHE_PREFIX = "omForecast:v7:"; // forandre versjon og siste siffer i 2026-04-26-6";
       
 
       // ---------- Konfig ----------
