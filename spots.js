@@ -4,12 +4,12 @@
 
 // ===== Globale vindstyrkegrenser (m/s) =====
 export const WIND_SPEED_MIN = 6;
-export const WIND_SPEED_MAX = 18;
+export const WIND_SPEED_MAX = 17;
 export const WIND_SPEED_IDEAL_MIN = 7;
-export const WIND_SPEED_IDEAL_MAX = 11;
+export const WIND_SPEED_IDEAL_MAX = 12;
 
 // ===== Hjelpefunksjon: lager spot med globale vindstyrker =====
-function makeSpot({ name, lat, lng, dirMin, dirMax }) {
+function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
   return {
     name,
     lat,
@@ -20,6 +20,8 @@ function makeSpot({ name, lat, lng, dirMin, dirMax }) {
     speedMax: WIND_SPEED_MAX,
     speedIdealMin: WIND_SPEED_IDEAL_MIN,
     speedIdealMax: WIND_SPEED_IDEAL_MAX,
+    ...rest,
+
   };
 }
 
@@ -39,6 +41,8 @@ export const spots = [
     lng: 6.053,
     dirMin: 100,
     dirMax: 250,
+    seaBreeze: true,
+    alarmText: "UTRØNA ALARM"
   }),
 
   // Krysser 0° (270 -> 70) er helt OK i logikken din
@@ -46,7 +50,7 @@ export const spots = [
     name: "Flø",
     lat: 62.40789114104769,
     lng: 5.840585929494764,
-    dirMin: 240,
+    dirMin: 270,
     dirMax: 70,
   }),
 
@@ -64,6 +68,8 @@ export const spots = [
     lng: 6.018906759080915,
     dirMin: 100,
     dirMax: 250,
+    seaBreeze: true,
+    alarmText: "UTRØNA ALARM"
   }),
 
   makeSpot({
@@ -157,6 +163,7 @@ export const spots = [
     dirMax: 320,
   }),
  
+ 
      makeSpot({
     name: "Larsnes",
     lat: 62.194210742763744,
@@ -179,6 +186,8 @@ export const spots = [
     lng: 6.11317285591574,
     dirMin: 200,
     dirMax: 300,
+    seaBreeze: true,
+    alarmText: "UTRØNA ALARM"
   }),
 
 ];
