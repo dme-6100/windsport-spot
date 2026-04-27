@@ -260,15 +260,17 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-10";
+      import { spots } from "./spots.js?v=2026-04-26-11";
     
+
+      
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v10:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v11:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -287,10 +289,10 @@ input[type="range"]::-moz-range-thumb {
       throw new Error("Leaflet not loaded");
     }
 
-    // ---------- Kart ----------
+   // ---------- Kart ----------
     const map = L.map("map").setView([62.25, 5.6], 9);
 
-    // Pane-rekkefølge (sikrer at vind-lag alltid ligger over)
+    // Pane-rekkefølge (sikrer at vind/spot alltid ligger over)
     map.createPane("basePane");
     map.getPane("basePane").style.zIndex = 200;
 
@@ -300,7 +302,7 @@ input[type="range"]::-moz-range-thumb {
     map.createPane("windPane");
     map.getPane("windPane").style.zIndex = 650;
 
-    // 1) Vanlig kart (OSM)
+    // 1) Landkart (OSM)
     const baseOSM = L.tileLayer(
       "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
       {
@@ -308,47 +310,30 @@ input[type="range"]::-moz-range-thumb {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors"
       }
-    );
+    ).addTo(map);
 
-    // 2) Kartverket sjøkart (WMS) – bedre grunner/skjær enn OpenSeaMap
-    // WMS base-URL: https://wms.geonorge.no/skwms1/wms.sjokartraster2  (fra Geonorge)  【1-5cf8cc】
+    // 2) Detaljert sjøkart (Kartverket – WMS)
     const kartverketSea = L.tileLayer.wms(
       "https://wms.geonorge.no/skwms1/wms.sjokartraster2",
       {
         pane: "seaPane",
-        layers: "all",           // vanlig praksis for å få "hele sjøkartet" (gruppe-lag)
+        layers: "all",
         format: "image/png",
-        transparent: false,      // siden dette er et “basekart”
+        transparent: false,
         version: "1.3.0"
       }
     );
 
-    // 3) (Valgfritt) OpenSeaMap sjømerker som overlay (bøyer/fyr). Transparent overlay. 【3-7b28b6】【4-43ca0e】
-    const seaMarks = L.tileLayer(
-      "https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
+    // ✅ Layer-velger: KUN disse to (ingen overlays)
+    L.control.layers(
       {
-        pane: "seaPane",
-        maxZoom: 19,
-        opacity: 1.0,
-        attribution: "© OpenSeaMap contributors"
-      }
-    );
+        "Landkart (OSM)": baseOSM,
+        "Sjøkart detaljert (Kartverket)": kartverketSea
+      },
+      null
+    ).addTo(map);
 
-    // Velg mellom “Kart” og “Sjøkart” i layer-velgeren
-    baseOSM.addTo(map); // start med vanlig kart
-
-    const baseMaps = {
-      "Kart (OSM)": baseOSM,
-      "Sjøkart (Kartverket)": kartverketSea
-    };
-
-    const overlays = {
-      "Sjømerker (OpenSeaMap)": seaMarks
-    };
-
-    L.control.layers(baseMaps, overlays).addTo(map);
-
-    // Din overlay-gruppe for spots/piler/tekst osv.
+    // Dine spots/piler/tekst legges i dette laget
     const layer = L.layerGroup().addTo(map);
 
 
