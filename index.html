@@ -409,8 +409,8 @@ input[type="range"]::-moz-range-thumb {
           Hvert spot vurderes ut fra både <strong>vindstyrke og vindretning</strong>. Vindstyrken deles inn i følgende nivåer:</p>
 
           <ul>
-            <li><strong>🔴 Rød</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 17 m/s</strong></li>
-            <li><strong>🟡 Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–17 m/s</strong></li>
+            <li><strong>🔴 Rød</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 19 m/s</strong></li>
+            <li><strong>🟡 Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
             <li><strong>🟢 Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> (optimalt område)</li>
           </ul>
 
@@ -457,6 +457,9 @@ input[type="range"]::-moz-range-thumb {
         const MAX_STEPS = 120; // ca 120 tidssteg i slider
         const TILE_URL = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png";
         
+
+      // ✅ Visningsfarge for dårlige forhold (erstatter rød)
+      const BAD_CONDITION_COLOR = "#b0b0b0"; // lys grå
 
     // ---------- UI ----------
     const slider = document.getElementById("timeSlider");
@@ -987,7 +990,11 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           if (seaBreezeOk) {
             status = { color: "green", label: "Solgangsbris" };
           }
-
+ 
+          // ✅ Visuell farge: bytt "red" til lys grå
+          const drawColor = (status.color === "red") ? BAD_CONDITION_COLOR : status.color;
+          ``
+ 
           // Vindkast i parentes
           const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
 
@@ -1000,7 +1007,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           // Sirkel
           const circle = L.circleMarker([spot.lat, spot.lng], {
             pane: "windPane",
-            color: status.color,
+            color: drawColor,
             radius: 10,
             weight: 3,
             fillOpacity: 0.20
@@ -1048,7 +1055,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           // Vindpil (samme farge som status – blir grønn ved solgangsbris)
           L.marker([spot.lat, spot.lng], {
             pane: "windPane",
-            icon: windArrowIcon(windTo, status.color),
+            icon: windArrowIcon(windTo, drawColor),
             interactive: false,
             zIndexOffset: 1200
           }).addTo(layer);
