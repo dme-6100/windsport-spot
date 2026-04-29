@@ -205,7 +205,7 @@ export const spots = [
 
     makeSpot({
     name: "Grotlesanden",
-    lat: 60.83952210676645,
+    lat: 61.84013175085448,
     lng: 4.893111271854321,
     dirMin: 120,
     dirMax: 270,
