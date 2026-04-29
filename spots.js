@@ -190,7 +190,7 @@ export const spots = [
     alarmText: "UTRØNA-ALARM"
   }),
 
-        makeSpot({
+      makeSpot({
     name: "Lurefjorden",
     lat: 60.70916,
     lng: 5.09711,
@@ -198,13 +198,12 @@ export const spots = [
     dirMax: 359,
   }),
 
-          makeSpot({
+    makeSpot({
     name: "Glesvær",
     lat: 60.20194,
     lng: 5.04095,
     dirMin: 0,
-    dirMax: 359,
-            
+    dirMax: 359,          
   }),
   
 ];
