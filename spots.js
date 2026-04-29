@@ -1,14 +1,10 @@
 // spots.js
-// Retning (dirMin/dirMax) er per spot.
-// Vindstyrke (min/max/ideal) er globale variabler (samme for alle).
 
-// ===== Globale vindstyrkegrenser (m/s) =====
 export const WIND_SPEED_MIN = 6;
 export const WIND_SPEED_MAX = 19;
 export const WIND_SPEED_IDEAL_MIN = 7;
 export const WIND_SPEED_IDEAL_MAX = 12;
 
-// ===== Hjelpefunksjon: lager spot med globale vindstyrker =====
 function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
   return {
     name,
@@ -21,11 +17,9 @@ function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
     speedIdealMin: WIND_SPEED_IDEAL_MIN,
     speedIdealMax: WIND_SPEED_IDEAL_MAX,
     ...rest,
-
   };
 }
 
-// ===== Spots =====
 export const spots = [
   makeSpot({
     name: "Koparstad",
@@ -42,10 +36,9 @@ export const spots = [
     dirMin: 100,
     dirMax: 250,
     seaBreeze: true,
-    alarmText: "UTRØNA-ALARM"
+    alarmText: "UTRØNA-ALARM",
   }),
 
-  // Krysser 0° (270 -> 70) er helt OK i logikken din
   makeSpot({
     name: "Flø",
     lat: 62.40789114104769,
@@ -69,7 +62,7 @@ export const spots = [
     dirMin: 100,
     dirMax: 250,
     seaBreeze: true,
-    alarmText: "UTRØNA-ALARM"
+    alarmText: "UTRØNA-ALARM",
   }),
 
   makeSpot({
@@ -88,7 +81,6 @@ export const spots = [
     dirMax: 330,
   }),
 
-  // Krysser 0° (270 -> 45)
   makeSpot({
     name: "Osnessanden",
     lat: 62.3442,
@@ -105,7 +97,6 @@ export const spots = [
     dirMax: 250,
   }),
 
-  // Bruk 359 (ikke 360) – men 359 fungerer fint
   makeSpot({
     name: "Giske",
     lat: 62.5058,
@@ -122,7 +113,6 @@ export const spots = [
     dirMax: 135,
   }),
 
-  // Krysser 0° (290 -> 45)
   makeSpot({
     name: "Blimssanden",
     lat: 62.5654,
@@ -139,7 +129,7 @@ export const spots = [
     dirMax: 250,
   }),
 
- makeSpot({
+  makeSpot({
     name: "Remøyvika",
     lat: 62.37645465628526,
     lng: 5.637361457002523,
@@ -147,7 +137,7 @@ export const spots = [
     dirMax: 100,
   }),
 
-   makeSpot({
+  makeSpot({
     name: "Sandevika",
     lat: 62.360843130269245,
     lng: 5.721266404814642,
@@ -155,16 +145,15 @@ export const spots = [
     dirMax: 40,
   }),
 
-   makeSpot({
+  makeSpot({
     name: "Gjerdsvika",
     lat: 62.261111618436395,
     lng: 5.5609770343137,
     dirMin: 270,
     dirMax: 320,
   }),
- 
- 
-     makeSpot({
+
+  makeSpot({
     name: "Larsnes",
     lat: 62.194210742763744,
     lng: 5.575699185481058,
@@ -172,7 +161,7 @@ export const spots = [
     dirMax: 315,
   }),
 
-       makeSpot({
+  makeSpot({
     name: "Berkneset",
     lat: 62.21437881061055,
     lng: 5.932437003978187,
@@ -180,17 +169,17 @@ export const spots = [
     dirMax: 315,
   }),
 
-      makeSpot({
+  makeSpot({
     name: "Rotevatnet",
     lat: 62.140510082543315,
     lng: 6.11317285591574,
     dirMin: 200,
     dirMax: 300,
     seaBreeze: true,
-    alarmText: "UTRØNA-ALARM"
+    alarmText: "UTRØNA-ALARM",
   }),
 
-      makeSpot({
+  makeSpot({
     name: "Lurefjorden",
     lat: 60.70916,
     lng: 5.09711,
@@ -198,12 +187,27 @@ export const spots = [
     dirMax: 359,
   }),
 
-    makeSpot({
+  makeSpot({
     name: "Glesvær",
     lat: 60.20194,
     lng: 5.04095,
     dirMin: 0,
-    dirMax: 359,          
+    dirMax: 359,
   }),
-  
+
+    makeSpot({
+    name: "Herdla",
+    lat: 60.572180665471755,
+    lng: 4.9609775765173865,
+    dirMin: 280,
+    dirMax: 170,
+  }),
+
+    makeSpot({
+    name: "Grotlesanden",
+    lat: 60.83952210676645,
+    lng: 4.893111271854321,
+    dirMin: 120,
+    dirMax: 270,
+  }),
 ];
