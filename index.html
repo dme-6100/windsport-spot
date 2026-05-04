@@ -888,10 +888,12 @@ async function fetchForecastForSpot(spot) {
     const SEA_BREEZE_DIR_MIN = 280;
     const SEA_BREEZE_DIR_MAX = 30;
 
-    // Sol = Open-Meteo weathercode 0..2 (klart / stort sett klart)
+
+// Solgangsbris krever HELT klar himmel (Open-Meteo weathercode 0)
+// Delvis skyet (1–2) regnes ikke som so
     function isSunny(symbolCode) {
       const c = Number(symbolCode);
-      return c === 0 || c === 1 || c === 2;
+      return c === 0 ;
 
     }
 
