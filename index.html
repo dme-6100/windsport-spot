@@ -90,6 +90,28 @@
         box-shadow: 0 18px 50px rgba(0,0,0,0.45);
       }
 
+      .spot-gallery {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 8px 0;
+        scroll-snap-type: x mandatory;
+      }
+
+      .spot-gallery img {
+        height: 140px;
+        border-radius: 12px;
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+      }
+
+      .spot-meta {
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .spot-meta b { color: #fff; }
       .modal-card h2 {
         margin: 6px 40px 10px 0;
         font-size: 18px;
@@ -393,9 +415,31 @@ input[type="range"]::-moz-range-thumb {
       </div>
     </div>
 
-    <!-- Info modal -->
-    <div id="infoModal" class="modal hidden" aria-hidden="true">
-      <div class="modal-backdrop" data-close="1"></div>
+      <!-- Info modal -->
+<div id="infoModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <button class="modal-close" id="infoClose" aria-label="Lukk">✕</button>
+    <h2 id="infoTitle">Info</h2>
+
+    <div class="modal-content" id="infoContent">
+      ...
+    </div>
+  </div>
+</div>
+
+<!-- Spot info modal (skal ligge her, ikke inni infoModal) -->
+<div id="spotModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="spotTitle">
+    <button class="modal-close" id="spotClose" aria-label="Lukk">✕</button>
+    <h2 id="spotTitle">Spot</h2>
+    <div class="modal-content" id="spotContent"></div>
+  </div>
+</div>
+
 
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
         <button class="modal-close" id="infoClose" aria-label="Lukk">✕</button>
@@ -444,7 +488,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-17";
+      import { spots } from "./spots.js?v=2026-04-26-19";
     
 
       
@@ -454,7 +498,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v17:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v19:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -818,7 +862,6 @@ async function fetchForecastForSpot(spot) {
     return new Map(cached);
   }
 
-// 2) Riktig URL (bruk & i JavaScript)
   const url =
     "https://api.open-meteo.com/v1/forecast" +
     `?latitude=${spot.lat}` +
@@ -828,9 +871,8 @@ async function fetchForecastForSpot(spot) {
     "&windspeed_unit=ms" +
     "&timeformat=unixtime" +
     "&timezone=Europe/Oslo";
-
-  // 3) Fetch + retry ved 429
-  let r = await fetch(url);
+    // 3) Fetch + retry ved 429
+    let r = await fetch(url);
 
   if (r.status === 429) {
     await sleep(3000);
@@ -1019,15 +1061,11 @@ function collectSpeedsForBin(mapByTime, isoTime) {
             fillOpacity: 0.20
           }).addTo(layer);
 
-          circle.bindPopup(
-            alarmLine +
-            `<b>${spot.name}</b><br>` +
-            `Tid: ${formatTime(usedTime)}<br>` +
-            `Vind fra: ${Math.round(windFromDir)}°<br>` +
-            `Vind til: ${Math.round(windTo)}°<br>` +
-            `Styrke: ${displayWind.toFixed(1)}${gustTxt} m/s<br>` +
-            `Status: ${status.label}`
-          );
+            circle.on("click", (e) => {
+              L.DomEvent.stop(e);   // hindrer at Leaflet sin popup tar over klikket
+              openSpotModal(spot);  // åpner din spot-modal
+            });
+          
 
           // Spot-navn
           L.marker([spot.lat, spot.lng], {
@@ -1199,7 +1237,6 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         const menuBtn   = document.getElementById("menuBtn");
         const dropdown  = document.getElementById("menuDropdown");
         const infoBtn   = document.getElementById("infoBtn");
-
         const modal     = document.getElementById("infoModal");
         const closeBtn  = document.getElementById("infoClose");
         const backdrop  = modal?.querySelector(".modal-backdrop");
@@ -1255,7 +1292,58 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         });
       })();
 
+      function openSpotModal(spot) {
+        console.log("Åpner spot-modal:", spot.name, spot.desc);
+        const modal = document.getElementById("spotModal");
+        const closeBtn = document.getElementById("spotClose");
+        const titleEl = document.getElementById("spotTitle");
+        const contentEl = document.getElementById("spotContent");
+        const backdrop = modal?.querySelector(".modal-backdrop");
 
+        if (!modal || !closeBtn || !titleEl || !contentEl || !backdrop) return;
+
+        titleEl.textContent = spot.name;
+
+        const dirText = `${spot.dirMin}° → ${spot.dirMax}°`;
+        const windText = `${spot.speedMin}–${spot.speedMax} m/s (ideal ${spot.speedIdealMin}–${spot.speedIdealMax})`;
+        const desc = spot.desc ? `<p class="spot-meta">${spot.desc}</p>` : "";
+        const access = spot.access ? `<p class="spot-meta"><b>Tilkomst:</b> ${spot.access}</p>` : "";
+        const hazards = spot.hazards ? `<p class="spot-meta"><b>Farer:</b> ${spot.hazards}</p>` : "";
+
+        const imgs = Array.isArray(spot.images) && spot.images.length
+          ? `<div class="spot-gallery">
+              ${spot.images.map(src => `<img src="${src}" alt="${spot.name}">`).join("")}
+            </div>`
+          : "";
+
+
+        contentEl.innerHTML = `
+          <p class="spot-meta"><b>Retningssektor:</b> ${dirText}</p>
+          <p class="spot-meta"><b>Vindgrenser:</b> ${windText}</p>
+          ${desc}
+          ${access}
+          ${hazards}
+          ${imgs}
+        `;
+
+        function close() {
+          modal.classList.add("hidden");
+          modal.setAttribute("aria-hidden", "true");
+          closeBtn.removeEventListener("click", close);
+          backdrop.removeEventListener("click", close);
+          document.removeEventListener("keydown", esc);
+        }
+
+        function esc(e) {
+          if (e.key === "Escape") close();
+        }
+
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
+        closeBtn.addEventListener("click", close);
+        backdrop.addEventListener("click", close);
+        document.addEventListener("keydown", esc);
+      }
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
    
