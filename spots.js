@@ -21,12 +21,20 @@ function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
 }
 
 export const spots = [
+  // ===== DINE EKSISTERENDE (uendret) =====
   makeSpot({
     name: "Koparstad",
     lat: 62.33516743664832,
     lng: 5.577218252855619,
     dirMin: 180,
     dirMax: 280,
+    desc: "Gå ut bak molo",
+    access: "Parkering til 2-3 biler. Kort gange til rigg.",
+    hazards: "Grunt ved lavvann. Mye tang. Pass opp for stein.",
+    images: [
+    "img/spots/Koparstad_1.jpeg",
+    //"img/spots/utrona-2.jpg" 
+    ]
   }),
 
   makeSpot({
@@ -123,7 +131,7 @@ export const spots = [
 
   makeSpot({
     name: "Blindheimsvika",
-    lat: 62.5479230,
+    lat: 62.547923,
     lng: 6.0897522,
     dirMin: 135,
     dirMax: 250,
@@ -195,7 +203,7 @@ export const spots = [
     dirMax: 359,
   }),
 
-    makeSpot({
+  makeSpot({
     name: "Herdla",
     lat: 60.572180665471755,
     lng: 4.9609775765173865,
@@ -203,11 +211,176 @@ export const spots = [
     dirMax: 170,
   }),
 
-    makeSpot({
+  makeSpot({
     name: "Grotlesanden",
     lat: 61.84013175085448,
     lng: 4.893111271854321,
     dirMin: 120,
     dirMax: 270,
   }),
+
+  // ===== NYE SPOTTER (fra tekst + lenker) =====
+
+  // ØSTFOLD
+  makeSpot({
+    name: "Teibern",
+    lat: 59.30848,
+    lng: 10.69262,
+    // Sør + sørvest
+    dirMin: 160,
+    dirMax: 250,
+  }),
+
+  makeSpot({
+    name: "Ørekroken",
+    lat: 59.03193,
+    lng: 11.01186,
+    // Sør + sørvest
+    dirMin: 160,
+    dirMax: 250,
+  }),
+
+  // BUSKERUD / VIKEN
+  makeSpot({
+    name: "Verket",
+    lat: 59.61361,
+    lng: 10.41861,
+    // Sørøst–sør–sørvest
+    dirMin: 120,
+    dirMax: 240,
+  }),
+
+  // VESTFOLD
+  makeSpot({
+    name: "Ringshaug",
+    lat: 59.2758,
+    lng: 10.49414,
+    // Sørøst–øst
+    dirMin: 80,
+    dirMax: 150,
+  }),
+
+  // TELEMARK
+  makeSpot({
+    name: "Stråholmen",
+    lat: 58.89871,
+    lng: 9.64342,
+    // Sør
+    dirMin: 160,
+    dirMax: 200,
+  }),
+
+  // AGDER
+  makeSpot({
+    name: "Bjellandstranda",
+    lat: 58.45617,
+    lng: 8.88007,
+    // SW–NE (krysser 0)
+    dirMin: 200,
+    dirMax: 60,
+  }),
+
+  makeSpot({
+    name: "Flætten/Borhaug havn",
+    // fra Google-lenka du sendte
+    lat: 58.1024277,
+    lng: 6.5849033,
+    // Vest–nordvest
+    dirMin: 260,
+    dirMax: 320,
+  }),
+
+  // ROGALAND
+  makeSpot({
+    name: "Sandestranden",
+    // fra Google-lenka du sendte
+    lat: 59.0193231,
+    lng: 5.5921889,
+    // Sørvest–vest
+    dirMin: 200,
+    dirMax: 280,
+  }),
+
+  makeSpot({
+    name: "Refsnesstranda",
+    lat: 58.695138,
+    lng: 5.548782,
+    // Sør-sørvest til sørvest
+    dirMin: 190,
+    dirMax: 240,
+  }),
+
+  makeSpot({
+    name: "Krosstangen",
+    lat: 58.7203,
+    lng: 5.52013,
+    // Sør-sørvest
+    dirMin: 190,
+    dirMax: 230,
+  }),
+
+  // VESTLAND
+  makeSpot({
+    name: "The Rock",
+    // fra Google-lenka du sendte
+    lat: 60.4370579,
+    lng: 5.0523387,
+    // Sørøst (sør går også)
+    dirMin: 110,
+    dirMax: 200,
+  }),
+
+  makeSpot({
+    name: "Vossavangen",
+    // fra Google-lenka du sendte
+    lat: 60.618566,
+    lng: 6.415857,
+    // Nordvest–vest (til nød sørvest)
+    dirMin: 225,
+    dirMax: 330,
+  }),
+
+  // TRØNDELAG
+  makeSpot({
+    name: "Vinge/Velvang",
+    // fra Google-lenka du sendte
+    lat: 63.473973,
+    lng: 10.805756,
+    // Sør-sørøst til vest-nordvest
+    dirMin: 150,
+    dirMax: 300,
+  }),
+
+  // MØRE & ROMSDAL
+  makeSpot({
+    name: "Malbukta",
+    // fra Google-lenka du sendte
+    lat: 62.725565,
+    lng: 6.69825,
+    // “det meste” (krysser 0)
+    dirMin: 300,
+    dirMax: 170,
+  }),
+
+  // TROMS
+  makeSpot({
+    name: "Breivikeidet",
+    // fra Google-lenka du sendte
+    lat: 69.661543,
+    lng: 19.655434,
+    // Nordøst
+    dirMin: 20,
+    dirMax: 70,
+  }),
+
+  makeSpot({
+    name: "Sjølund",
+    // fra Google-lenka du sendte
+    lat: 69.678456,
+    lng: 18.891981,
+    // Nordøst
+    dirMin: 20,
+    dirMax: 70,
+  }),
 ];
+``
