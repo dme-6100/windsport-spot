@@ -1,533 +1,1361 @@
-// spots.js
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vind-spotter</title>
 
-export const WIND_SPEED_MIN = 6;
-export const WIND_SPEED_MAX = 19;
-export const WIND_SPEED_IDEAL_MIN = 7;
-export const WIND_SPEED_IDEAL_MAX = 12;
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 
-function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
-  return {
-    name,
-    lat,
-    lng,
-    dirMin,
-    dirMax,
-    speedMin: WIND_SPEED_MIN,
-    speedMax: WIND_SPEED_MAX,
-    speedIdealMin: WIND_SPEED_IDEAL_MIN,
-    speedIdealMax: WIND_SPEED_IDEAL_MAX,
-    ...rest,
-  };
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #map { height: 100vh; width: 100vw; }
+
+    /* --- App menu (top-left) --- */
+      .app-menu {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 9999; /* over Leaflet */
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+
+      .menu-btn {
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(20, 20, 20, 0.85);
+        color: #fff;
+        font-size: 22px;
+        line-height: 44px;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      }
+
+      .menu-dropdown {
+        margin-top: 8px;
+        min-width: 160px;
+        background: rgba(20, 20, 20, 0.92);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.30);
+      }
+
+      .menu-item {
+        width: 100%;
+        text-align: left;
+        padding: 12px 14px;
+        border: none;
+        background: transparent;
+        color: #fff;
+        cursor: pointer;
+        font-size: 15px;
+      }
+
+      .menu-item:hover {
+        background: rgba(255,255,255,0.08);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* --- Modal --- */
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 10000; /* over meny og Leaflet */
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+      }
+
+      .modal-card {
+        position: relative;
+        width: min(720px, calc(100vw - 24px));
+        max-height: calc(100vh - 24px);
+        margin: 12px auto;
+        top: 6px;
+        background: #0f1115;
+        color: #e8e8ea;
+        border-radius: 14px;
+        padding: 16px 16px 14px;
+        overflow: auto;
+        box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+      }
+
+      .spot-gallery {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 8px 0;
+        scroll-snap-type: x mandatory;
+      }
+
+      .spot-gallery img {
+        height: 140px;
+        border-radius: 12px;
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+      }
+
+      .spot-meta {
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .spot-meta b { color: #fff; }
+      .modal-card h2 {
+        margin: 6px 40px 10px 0;
+        font-size: 18px;
+      }
+
+      .modal-content p {
+        margin: 10px 0;
+        line-height: 1.35;
+        font-size: 14px;
+      }
+
+      .modal-content ul {
+        margin: 8px 0 8px 18px;
+        padding: 0;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        cursor: pointer;
+        font-size: 18px;
+      }
+      .modal-close:hover {
+        background: rgba(255,255,255,0.14);
+      }
+
+    /* Panel */
+    .panel {
+      position: absolute;
+      left: 10px;
+      right: 10px;  /* <-- gjør at den kan fylle pent i bredden */
+      bottom: calc(10px + env(safe-area-inset-bottom)); /* <-- safe area */
+      z-index: 3000;
+
+      background: rgba(255,255,255,0.93);
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20);
+
+      max-width: 720px; /* <-- beholder maksbredden */
+      margin: 0 auto;   /* <-- sentrerer */
+      font-family: system-ui, Arial, sans-serif;
+    }
+      /* Gjør "Tidspunkt" (h3) lik timeLabel */
+    .panel h3 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Topplinje: "Tidspunkt" til venstre + gjeldende tidspunkt til høyre */
+    .panel-topline{
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 10px 0; /* luft ned til slider */
+    }
+
+    .panel-title{
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .panel-time{
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+
+    /* Viktig: divIcon uten default bakgrunn */
+    .wind-arrow-icon,
+    .wind-speed-icon,
+    .spot-name-icon {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ✅ Vindhastighet UTEN hvit firkant:
+       - ingen background
+       - ingen border
+       - litt text-shadow for lesbarhet */
+    .wind-speed-label {
+      font-family: system-ui, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+      text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+    }
+
+    /* ✅ Spot-navn rett over sirkelen */
+    .spot-name-label {
+      font-family: system-ui, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      white-space: nowrap;
+      text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+    }
+
+  .weather-badge {
+    font-family: system-ui, Arial, sans-serif;
+    font-size: 34px;
+    line-height: 34px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+
+    white-space: nowrap;
+
+    /* samme lesbarhet som du bruker ellers */
+    text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+  }
+
+
+.alarm-badge {
+  font-family: system-ui, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #277556;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  white-space: nowrap;
+   /* litt lesbarhet over kartet */
+    text-shadow: 0 0 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.75);
+  }
+
+  /* sørg for at Leaflet-divIcon ikke får bakgrunn */
+  .alarm-icon {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+    /* ===== Dagsskille under slider (pen og uten overlap) ===== */
+
+.slider-wrap {
+  position: relative;
+  width: 100%;
 }
 
-export const spots = [
-  // ===== DINE EKSISTERENDE (uendret) =====
-  makeSpot({
-    name: "Koparstad",
-    lat: 62.33516743664832,
-    lng: 5.577218252855619,
-    dirMin: 180,
-    dirMax: 280,
-    desc: "Gå ut bak molo",
-    access: "Parkering til 2-3 biler. Kort gange til rigg.",
-    hazards: "Grunt ved lavvann. Mye tang. Pass opp for stein.",
-    images: ["img/spots/Koparstad_1.jpeg"],
-  }),
+#timeSlider {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+}
 
-  makeSpot({
-    name: "Utrøna naustet",
-    lat: 62.149,
-    lng: 6.053,
-    dirMin: 100,
-    dirMax: 250,
-    seaBreeze: true,
-    alarmText: "UTRØNA-ALARM",
-  }),
+.day-track {
+  position: relative;
+  width: 100%;   /* viktig: samme bredde som slideren */
+  height: 22px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
 
-  makeSpot({
-    name: "Flø",
-    lat: 62.40789114104769,
-    lng: 5.840585929494764,
-    dirMin: 270,
-    dirMax: 70,
-  }),
 
-  makeSpot({
-    name: "Skeide",
-    lat: 62.366348430696085,
-    lng: 5.811869642014426,
-    dirMin: 220,
-    dirMax: 320,
-  }),
+.day-tick {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 10px;
+  background: rgba(0,0,0,0.35);
+}
 
-  makeSpot({
-    name: "Mork",
-    lat: 62.16473615248078,
-    lng: 6.018906759080915,
-    dirMin: 100,
-    dirMax: 250,
-    seaBreeze: true,
-    alarmText: "UTRØNA-ALARM",
-  }),
+.day-label {
+  position: absolute;
+  top: 15px;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: rgba(0,0,0,0.65);
+  white-space: nowrap;
+}
 
-  makeSpot({
-    name: "Torvika",
-    lat: 62.34584,
-    lng: 5.7487,
-    dirMin: 0,
-    dirMax: 180,
-  }),
+/* Gjør første dag litt tydeligere */
+.day-tick.first {
+  background: rgba(0,0,0,0.55);
+  height: 10px;
+}
 
-  makeSpot({
-    name: "Toftestøa",
-    lat: 62.32188617713419,
-    lng: 5.624221778188496,
-    dirMin: 200,
-    dirMax: 330,
-  }),
+.day-label.first {
+  color: rgba(0,0,0,0.85);
+  font-size: 14px;
+  font-weight: 700;
+}
 
-  makeSpot({
-    name: "Osnessanden",
-    lat: 62.3442,
-    lng: 5.8241,
-    dirMin: 270,
-    dirMax: 45,
-  }),
 
-  makeSpot({
-    name: "Grevsneset",
-    lat: 62.1165,
-    lng: 6.095,
-    dirMin: 100,
-    dirMax: 250,
-  }),
+/* Aktuell dato/tid (under slider) – midtstilt + mer luft over */
+#timeLabel {
+  text-align: center;
+  font-size: 18px;      /* juster etter smak */
+  font-weight: 700;
+  opacity: 1;
 
-  makeSpot({
-    name: "Giske",
-    lat: 62.5058,
-    lng: 6.0475,
-    dirMin: 0,
-    dirMax: 359,
-  }),
+  margin-top: 12px;     /* <-- mer luft over */
+  margin-bottom: 2px;   /* valgfritt: litt luft under */
+}
 
-  makeSpot({
-    name: "Roaldsanden",
-    lat: 62.5747,
-    lng: 6.1263,
-    dirMin: 0,
-    dirMax: 135,
-  }),
+/* Dag-skiller skal ikke fange mus/touch – slideren skal få alt */
+#dayTrack,
 
-  makeSpot({
-    name: "Blimssanden",
-    lat: 62.5654,
-    lng: 6.0463,
-    dirMin: 290,
-    dirMax: 45,
-  }),
+#dayTrack * {
+  pointer-events: none;
+}
 
-  makeSpot({
-    name: "Blindheimsvika",
-    lat: 62.547923,
-    lng: 6.0897522,
-    dirMin: 135,
-    dirMax: 250,
-  }),
+/* Større og mer finger-vennlig tidslinje-thumb */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;               /* selve linjen */
+  border-radius: 4px;
+  background: #ccc;
+}
 
-  makeSpot({
-    name: "Remøyvika",
-    lat: 62.37645465628526,
-    lng: 5.637361457002523,
-    dirMin: 0,
-    dirMax: 100,
-  }),
+/* iOS / Safari / Chrome */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;               /* ← størrelse på sirkelen */
+  height: 26px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
 
-  makeSpot({
-    name: "Sandevika",
-    lat: 62.360843130269245,
-    lng: 5.721266404814642,
-    dirMin: 340,
-    dirMax: 40,
-  }),
+/* Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+  /* iPhone/små skjermer: gjør dag-labelene mindre så de ikke overlapper */
+  @media (max-width: 430px) {
+    .day-label { font-size: 12px; top: 12px; }
+    .day-label.first { font-size: 12px; }
+    .day-track { height: 26px; }
+  }
 
-  makeSpot({
-    name: "Gjerdsvika",
-    lat: 62.261111618436395,
-    lng: 5.5609770343137,
-    dirMin: 270,
-    dirMax: 320,
-  }),
 
-  makeSpot({
-    name: "Larsnes",
-    lat: 62.194210742763744,
-    lng: 5.575699185481058,
-    dirMin: 180,
-    dirMax: 315,
-  }),
+  </style>
 
-  makeSpot({
-    name: "Berkneset",
-    lat: 62.21437881061055,
-    lng: 5.932437003978187,
-    dirMin: 180,
-    dirMax: 315,
-  }),
+</head>
 
-  makeSpot({
-    name: "Rotevatnet",
-    lat: 62.140510082543315,
-    lng: 6.11317285591574,
-    dirMin: 200,
-    dirMax: 300,
-    seaBreeze: true,
-    alarmText: "UTRØNA-ALARM",
-  }),
 
-  makeSpot({
-    name: "Lurefjorden",
-    lat: 60.70916,
-    lng: 5.09711,
-    dirMin: 0,
-    dirMax: 359,
-  }),
+<body>
+  <div id="map"></div>
 
-  makeSpot({
-    name: "Glesvær",
-    lat: 60.20194,
-    lng: 5.04095,
-    dirMin: 0,
-    dirMax: 359,
-  }),
+  <div class="panel">
+    <div class="panel-topline">
+      <div class="panel-title">Tidspunkt</div>
+      <div class="panel-time" id="timeLabel">Laster...</div>
+    </div>
 
-  makeSpot({
-    name: "Herdla",
-    lat: 60.572180665471755,
-    lng: 4.9609775765173865,
-    dirMin: 280,
-    dirMax: 170,
-    desc: "Flatvannspot på innsiden av Herdla. Skjermet av stor gresslette.",
-    access: "Bil helt frem. Rigging/launch på liten sand-/steinstrand eller gress.",
-    bottom: "Stein (fralandsvind – en går ikke på grunn).",
-    hazards:
-      "Litt gusty launch. Fuglefredningsområde: ingen ferdsel med kite/bil på flystripen, og fredet på nordsiden av gressletta.",
-    current: "Ingen strøm.",
-    optimalWind: "Nord.",
-  }),
+    <input id="timeSlider" type="range" min="0" max="0" value="0" step="1">
+    <div id="dayTrack" class="day-track"></div>
+    <div style="margin-top:8px;">
+      <span class="small" id="statusMsg"></span>
+    </div>
+  </div>
 
-  makeSpot({
-    name: "Grotlesanden",
-    lat: 61.84013175085448,
-    lng: 4.893111271854321,
-    dirMin: 120,
-    dirMax: 270,
-  }),
 
-  // ===== NYE SPOTTER (fra tekst + lenker) =====
+    <!-- Top-left menu button -->
+    <div id="appMenu" class="app-menu">
+      <button id="menuBtn" class="menu-btn" aria-label="Meny" title="Meny">☰</button>
 
-  // ØSTFOLD
-  makeSpot({
-    name: "Teibern",
-    lat: 59.30848,
-    lng: 10.69262,
-    // Sør + sørvest
-    dirMin: 160,
-    dirMax: 250,
-    desc:
-      "Langgrunn sandbunn i skjermet bukt ved Larkollen. Ofte flatt; ved høyvann/lavtrykk kan bølger slå over naturlig molo.",
-    access:
-      "Kjør mot Larkollen camping, hold venstre før innkjøring. Parkering i enden av veien.",
-    bottom: "Sand med enkelte steiner (spesielt høyt og lavt i bukta).",
-    hazards:
-      "Trang bukt, grunt på lavvann. Kitere ute av kontroll kan forekomme. Anbefales ikke for begynnere.",
-    current: "Ingen strøm.",
-    optimalWind: "Sør og sørvest. Sørvest foretrukket (bukta kan bli trang på sør).",
-    notes:
-      "Ved mye folk: øst-tuppen av Lille-Danmark kan være svært godt flattvannsalternativ.",
-  }),
+      <div id="menuDropdown" class="menu-dropdown hidden">
+        <button id="infoBtn" class="menu-item">Info</button>
+      </div>
+    </div>
 
-  makeSpot({
-    name: "Ørekroken",
-    lat: 59.03193,
-    lng: 11.01186,
-    // Sør + sørvest
-    dirMin: 160,
-    dirMax: 250,
-    desc:
-      "Langgrunn bukt med smal åpning mot havet. Dønning dempes inn, og småbølger blir mindre mot land; flatere i sidene.",
-    access:
-      "Sving til høyre ved første vei (ikke blindvei) etter Hvalertunnellen (rv 108).",
-    bottom: "Sand og stein.",
-    hazards:
-      "Ta hensyn til hytteeiere. Parker fornuftig og respekter badebøyer.",
-    current: "Ingen strøm.",
-    optimalWind: "Sør og sørvest.",
-  }),
+      <!-- Info modal -->
+<div id="infoModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
 
-  // BUSKERUD / VIKEN
-  makeSpot({
-    name: "Verket",
-    lat: 59.61361,
-    lng: 10.41861,
-    // Sørøst–sør–sørvest
-    dirMin: 120,
-    dirMax: 240,
-    desc:
-      "Mekka for flatvannskiting i Drammensfjorden. Best på ren sør. Ekstra gode dager ved sterk utoverstrøm som kan gi paddeflatt vann i bukta.",
-    access:
-      "De fleste parkerer på østsiden av ferjeleiet og går ut til tangen for rigg/launch. Rigging/launch på gress ved moloen.",
-    bottom: "Stein, grus og sand.",
-    hazards:
-      "Ekstrem strøm mellom Verket og Svelvik. Ferskinger bør holde seg på østsiden av moloen. Store båter går inn/ut av fjorden. Kan være grunt på lavvann.",
-    current:
-      "Ekstrem strøm mellom Verket og Svelvik. Ingen strøm inne i bukta.",
-    optimalWind: "Sørvest, sør og sørøst (vind mellom sørøst og sørvest).",
-  }),
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <button class="modal-close" id="infoClose" aria-label="Lukk">✕</button>
+    <h2 id="infoTitle">Info</h2>
 
-  // VESTFOLD
-  makeSpot({
-    name: "Ringshaug",
-    lat: 59.2758,
-    lng: 10.49414,
-    // Sørøst–øst
-    dirMin: 80,
-    dirMax: 150,
-    desc:
-      "Sandstrand som ofte blir flattvannseldorado når molo/landtunge skjermer. På sør–sørøst kan det bli flatt bak moloen, og bølger kan rulle inn på langgrunn strand.",
-    access: "Parkering i komfortabel gåavstand til spotten.",
-    bottom: "Sand og stein.",
-    hazards:
-      "Ustabil vind om du går ut på feil vindretninger. En del stein på motsatt side av bukta.",
-    current: "Ingen strøm.",
-    optimalWind: "Sørøst–øst.",
-  }),
+    <div class="modal-content" id="infoContent">
+      ...
+    </div>
+  </div>
+</div>
 
-  // TELEMARK
-  makeSpot({
-    name: "Stråholmen",
-    lat: 58.89871,
-    lng: 9.64342,
-    // Sør
-    dirMin: 160,
-    dirMax: 200,
-    desc:
-      "Skjærgårdsidyll med bølgeskjerming via en tynn tarm. Litt ustabilt helt inne ved stranda, men går greit. Solgangsbris kan akselerere gjennom Jomfrulandsrenna.",
-    access:
-      "Båt/taxibåt. Optimalt: seilbåt, så du kan ligge innenfor moloen.",
-    bottom: "Sand.",
-    hazards:
-      "Temmelig grunt, og en og annen stein kan være fare (finner/kitere).",
-    current: "Ingen strøm.",
-    optimalWind: "Sør.",
-  }),
+<!-- Spot info modal (skal ligge her, ikke inni infoModal) -->
+<div id="spotModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
 
-  // AGDER
-  makeSpot({
-    name: "Bjellandstranda",
-    lat: 58.45617,
-    lng: 8.88007,
-    // SW–NE (krysser 0)
-    dirMin: 200,
-    dirMax: 60,
-    desc:
-      "Relativt lite plass å rigge. Mulig å finne flattvann med grei vind i mange retninger; ofte best med sør/sørvest.",
-    access:
-      "Bil, deretter et par hundre meter å gå. Ta hensyn til lokalbefolkningen og spør evt. om parkering.",
-    bottom: "Stein og sand.",
-    hazards: "Steiner rett under vannflaten.",
-    current: "Lite strøm.",
-    optimalWind: "Funker fra sørvest til nordøst (best med sør og sørvest).",
-  }),
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="spotTitle">
+    <button class="modal-close" id="spotClose" aria-label="Lukk">✕</button>
+    <h2 id="spotTitle">Spot</h2>
+    <div class="modal-content" id="spotContent"></div>
+  </div>
+</div>
 
-  makeSpot({
-    name: "Flætten/Borhaug havn",
-    lat: 58.1024277,
-    lng: 6.5849033,
-    // Vest–nordvest
-    dirMin: 260,
-    dirMax: 320,
-    desc:
-      "Alternativ til storhavsbølger på Lista. Havna slipper inn nordvest og gir forhold som er mer håndterlige (ikke helt paddeflatt, men ofte godt nok).",
-    access: "Kjør og parker helt frem til riggeområdet.",
-    bottom: "Stein og sand.",
-    hazards:
-      "Rimelig ustabil vind ved liten strand ved butikken, og steiner kan være kranglete. Steinmolo og kryssende båttrafikk (men lite båter). Ikke optimal for ferske kitere – krever at du kan holde høyde.",
-    current: "Ingen strøm her inne.",
-    optimalWind: "Vest–nordvest.",
-  }),
 
-  // ROGALAND
-  makeSpot({
-    name: "Sandestranden",
-    lat: 59.0193231,
-    lng: 5.5921889,
-    // Sørvest–vest
-    dirMin: 200,
-    dirMax: 280,
-    desc:
-      "Fin sandstrand med gress for rigg. Paddeflatt område ved molo, men krever kontroll siden molo/brygge er rett nedvinds ved flattvannsområdet.",
-    access:
-      "Kjør mot Randaberg. Forbi sentrum og Statoil. Følg Bøveien (472) til kysten og ned til stranden. Parkér ved skiltet.",
-    bottom: "Tang og sand (stein ute ved moloen).",
-    hazards:
-      "Murbrygge/molo downwind ved flattvannsområdet – best egnet for øvede.",
-    current: "Lite, ikke til bekymring.",
-    optimalWind: "Sørvest–vest.",
-    restrictions:
-      "Vernet område: ikke lov å holde på fra 31. oktober til 1. april.",
-    notes:
-      "Blåser normalt litt svakere her (lenger nord på Jæren) enn lenger sør.",
-  }),
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+        <button class="modal-close" id="infoClose" aria-label="Lukk">✕</button>
+        <h2 id="infoTitle">Info</h2>
 
-  makeSpot({
-    name: "Refsnesstranda",
-    lat: 58.695138,
-    lng: 5.548782,
-    // Sør-sørvest til sørvest
-    dirMin: 190,
-    dirMax: 240,
-    desc:
-      "Saltebukta ved Raunen. Rev i sørenden skjermer for bølger og gir temmelig flatt vann på rette dager. God plass å rigge på sandstrand.",
-    access:
-      "Kjør Nordsjøveien sørover forbi Bore og Orre. Ta av ved skilt til Refsnes badestrand. Parkér, gå over liten bro og nordover.",
-    bottom: "Sand.",
-    hazards: "Steiner rundt elveutløp midt på stranden.",
-    current: "Ikke til bekymring.",
-    optimalWind: "Sør–sørvest til sørvest. Ren sør kan bli litt ustabil, og for mye vest gir mer bølger inn.",
-  }),
+        <div class="modal-content" id="infoContent">
+          <p><strong>Om appen</strong><br>
+          Denne appen viser <strong>time‑for‑time vind‑ og værvarsel</strong> for utvalgte lokale spots. Informasjonen presenteres på kart og tidslinje for rask vurdering av når forholdene er gode.</p>
 
-  makeSpot({
-    name: "Krosstangen",
-    lat: 58.7203,
-    lng: 5.52013,
-    // Sør-sørvest
-    dirMin: 190,
-    dirMax: 230,
-    desc:
-      "Rigging på gress eller sandstrand. Best/flatest på sørlig vind. Mer øst gir mer ustabil vind over land.",
-    access:
-      "Kjør Nordsjøveien sørover forbi Bore og Orre. Ned ved fotballbanen på venstre side ved skiltet til Pollestad. Ligger rett sør for Orre.",
-    bottom: "Sand.",
-    hazards:
-      "Et par steiner under vann ved stranden, helt opp mot revet.",
-    current: "Ikke til bekymring.",
-    optimalWind: "Sør–sørvest.",
-  }),
+          <p><strong>Fargekoder og vindstyrke</strong><br>
+          Hvert spot vurderes ut fra både <strong>vindstyrke og vindretning</strong>. Vindstyrken deles inn i følgende nivåer:</p>
 
-  // VESTLAND
-  makeSpot({
-    name: "The Rock",
-    lat: 60.4370579,
-    lng: 5.0523387,
-    // Sørøst (sør går også)
-    dirMin: 110,
-    dirMax: 200,
-    desc:
-      "Fjell/stein-spot med launch fra liten holme midt på molo. Steinmolo mellom Askøy og Ramsøyna gir superflatt vann, ofte uansett vindstyrke. Dypt med en gang.",
-    access:
-      "Vestsiden av Askøy. Parkér på Ramsøyna og gå ut på moloen for rigg.",
-    hazards:
-      "Vanskelig og farlig launch. Svært trangt (maks ca. tre kitere samtidig). Lite rom for feil – launch fra fjell.",
-    current:
-      "Ikke så mye strøm, men du kan drive raskt nedover ved problemer. Kom deg inn til en side raskt, ellers drift ut i Hjeltefjorden.",
-    optimalWind:
-      "Sørøst mest optimalt. Sør kan også fungere. Litt feil retning kan gi veldig kastete vind.",
-  }),
+          <ul>
+            <li><strong>  Grå</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 19 m/s</strong></li>
+            <li><strong>  Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
+            <li><strong>  Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> (optimalt område)</li>
+          </ul>
 
-  makeSpot({
-    name: "Vossavangen",
-    lat: 60.618566,
-    lng: 6.415857,
-    // Nordvest–vest (til nød sørvest)
-    dirMin: 225,
-    dirMax: 330,
-    desc:
-      "Flatvannsmagi når vestavind blåser inn elva: oljeflatt vann og mulig i svak vind. Vinden blåser motsatt av elvas strøm. Rigging/launch på gress; alternativt holde på i vannet.",
-    access:
-      "Kort avstand fra parkering på motsatt side av hengebrua. Også gåavstand fra sentrum langs stranda.",
-    bottom: "Sand og noe stein.",
-    hazards:
-      "Strømmen i elva kan være sterk. Vær innstilt på å måtte svømme ved krasj. Enkelte skarpe steiner på bunn.",
-    current: "Forholdsvis sterk strøm i Vosso.",
-    optimalWind: "Nordvest til vest (til nød også sørvest).",
-  }),
+          <p>Fargen vises kun når <strong>vindretningen også er innenfor spotets tillatte sektor</strong>.</p>
 
-  // TRØNDELAG
-  makeSpot({
-    name: "Vinge/Velvang",
-    lat: 63.473973,
-    lng: 10.805756,
-    // Sør-sørøst til vest-nordvest
-    dirMin: 150,
-    dirMax: 300,
-    desc:
-      "Lang molo øst/vest ut til liten halvøy. Veldig bra på lavvann. På høyvann fungerer det dårligere fordi moloen er lav og bølger slår over. God gresslette for rigg/launch.",
-    access:
-      "Kjør helt fram og parker ved spoten. Ligger rett ut fra Velvang Vestre Camping.",
-    bottom: "Stein.",
-    hazards:
-      "Trangt og steinete. På østlig vind kan det være veldig ustabilt på land, men ok på sjøen.",
-    current: "Ikke merkbart.",
-    optimalWind: "Sør–sørøst til vest–nordvest.",
-    notes:
-      "Sønnavind pleier å være kraftig i Trøndelag – når det blåser riktig, blåser det ofte kraftig.",
-  }),
+          <p><strong>Utrøna‑alarm (solgangsbris)</strong><br>
+          Utrøna har en egen <strong>solgangsbris‑alarm</strong>:
+          <ul>
+            <li>Aktiveres når <strong>solforhold og vindretning</strong> tilsier lokal bris</li>
+            <li>Gjelder kun på <strong>dagtid (ca. kl. 12–20)</strong></li>
+            <li>Vises som <strong>grønn alarmtekst</strong> i kartet når aktiv</li>
+          </ul>
+          Alarmen er ment som et supplement til vanlig vindvarsling.</p>
 
-  // MØRE & ROMSDAL
-  makeSpot({
-    name: "Malbukta",
-    lat: 62.725565,
-    lng: 6.69825,
-    // “det meste” (krysser 0)
-    dirMin: 300,
-    dirMax: 170,
-    desc:
-      "Liten bergarm (Tangen) gir flatt vann på lesiden. Litt steinete launch fra gressflekk. Holmer tar siste rester av bølger.",
-    access:
-      "Parkér ved veien (evt. hos bonde hvis ok). Gå ca. fem minutter utover mot havet langs liten traktorvei.",
-    bottom: "Noen steiner innerst i vika; beste forhold ytterst i vika.",
-    hazards:
-      "Steiner mot land innerst. Ved rek kan du dras mot motsatt side av vika (også litt steinete). Krever kontroll for å holde på her.",
-    current: "Lite strøm.",
-    optimalWind:
-      "Det meste kan være bra (helt ute i havgapet). Ofte nordvest–nordøst og sør–sørøst (vind dreies litt av Stemshesten).",
-  }),
+          <p><strong>Kart og tidslinje</strong><br>
+          Du kan velge mellom <strong>landkart og detaljert sjøkart</strong>. Vindpiler, spot‑markører og alarmer vises alltid over kartet.
+          
+          <p><strong>Bruk og oppdatering</strong><br>
+          Appen kan brukes direkte i nettleseren eller legges til som <strong>app‑snarvei</strong> på mobil. Ved større oppdateringer kan det være nødvendig å laste appen på nytt for å se siste versjon.</p>
+        
+          <p><strong>Ansvarsfraskrivelse</strong><br>
+          Denne applikasjonen er et veiledende verktøy for visning av vind‑ og værinformasjon basert på offentlige og tredjeparts datakilder. Informasjonen kan inneholde feil, forsinkelser eller lokale avvik, og det gis ingen garanti for fullstendighet eller nøyaktighet.
+          Bruk av appen skjer på eget ansvar. Appen er ikke beregnet for navigasjon til sjøs, sikkerhetskritiske beslutninger eller operativ bruk innen maritime, yrkesmessige eller risikoutsatte aktiviteter. Den erstatter ikke offisielle varsler, nautiske sjøkart, værmeldingstjenester eller eget skjønn.
+          Utvikler og bidragsytere kan ikke holdes ansvarlige for skader, tap eller ulemper som måtte oppstå som følge av bruk eller tillit til informasjonen som vises i appen.
 
-  // TROMS
-  makeSpot({
-    name: "Breivikeidet",
-    lat: 69.661543,
-    lng: 19.655434,
-    // Nordøst
-    dirMin: 20,
-    dirMax: 70,
-    desc:
-      "Stabil solgangsbris (ofte 7–10 m/s) på gode perioder. Lang sandstrand ved elveutløp. Sandbanker demper bølger og gir bassengflattvann. Elveutløp kan gi ekstra effekt.",
-    access:
-      "Følg E8 fra Tromsø sørover, ta av på Rv 91 til fergeleiet. Erfarne kan krysse fra fergeleiet. Andre: ta av på Fv 51 mot Tromsø Golfklubb før fergeleiet, og litt forbi golfklubben.",
-    bottom: "Sand.",
-    hazards: "Grunt ved fjære sjø.",
-    current: "Elveutløp gir naturlig bevegelse/strøm.",
-    optimalWind: "Nordøst.",
-  }),
+          Eventuelle kommentarer eller feilrettinger kan sendes til dmeriksen@hotmail.com
+          
+        </div>
+      </div>
+    </div>
 
-  makeSpot({
-    name: "Sjølund",
-    lat: 69.678456,
-    lng: 18.891981,
-    // Nordøst
-    dirMin: 20,
-    dirMax: 70,
-    desc:
-      "Sandnessundet ved Tromsø Lufthavn. Vanlig sjøsetting fra Tromsø Brettseilerklubb på Sjølund. På nordøst (vanlig om sommeren) blåser vinden over flatt landområde (flyplassen) og rett ut av bukta.",
-    access: "God parkering. Kort vei fra parkering til stranda. Rigg på gress.",
-    bottom:
-      "Sandbunn på lavvann langt ut fra land hele veien nordover langs land og inn i bukta.",
-    hazards:
-      "Betongrør fra pumpestasjon stikker ut i sjøen (synlig ved ekstremt lavvann ca. 200 m fra land).",
-    current:
-      "Sterk strøm ute/nordover i sundet kan forekomme, men inne i bukta er det veldig lite strøm.",
-    optimalWind:
-      "Nordøst best for flattvann. Ellers fungerer alt mellom sørøst og sørvest. Vest kan gå, men kan være veldig ujevn.",
-  }),
-];
+
+  <!-- Leaflet JS -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script type="module">
+      import { spots } from "./spots.js?v=2026-04-26-19";
+    
+
+      
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+      // --- Cache (én gang) ---
+      const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
+      const CACHE_PREFIX = "omForecast:v19:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      
+
+      // ---------- Konfig ----------
+        const MAX_STEPS = 120; // ca 120 tidssteg i slider
+        const TILE_URL = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png";
+        
+
+      // ✅ Visningsfarge for dårlige forhold (erstatter rød)
+      const BAD_CONDITION_COLOR = "#b0b0b0"; // lys grå
+
+    // ---------- UI ----------
+    const slider = document.getElementById("timeSlider");
+    const timeLabel = document.getElementById("timeLabel");
+    const statusMsg = document.getElementById("statusMsg");
+
+    // ---------- Leaflet sjekk ----------
+    if (typeof L === "undefined") {
+      timeLabel.textContent = "Feil: Leaflet lastet ikke (sjekk nett / CDN).";
+      throw new Error("Leaflet not loaded");
+    }
+
+   // ---------- Kart ----------
+    const map = L.map("map", {
+    zoomControl: false
+    }).setView([62.25, 5.6], 9);
+
+    L.control.zoom({ position: "topright" }).addTo(map);
+
+    // Pane-rekkefølge (sikrer at vind/spot alltid ligger over)
+    map.createPane("basePane");
+    map.getPane("basePane").style.zIndex = 200;
+
+    map.createPane("seaPane");
+    map.getPane("seaPane").style.zIndex = 300;
+
+    map.createPane("windPane");
+    map.getPane("windPane").style.zIndex = 650;
+
+    // 1) Landkart (OSM)
+    const baseOSM = L.tileLayer(
+      "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+      {
+        pane: "basePane",
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    ).addTo(map);
+
+    // 2) Detaljert sjøkart (Kartverket – WMS)
+    const kartverketSea = L.tileLayer.wms(
+      "https://wms.geonorge.no/skwms1/wms.sjokartraster2",
+      {
+        pane: "seaPane",
+        layers: "all",
+        format: "image/png",
+        transparent: false,
+        version: "1.3.0"
+      }
+    );
+
+    // ✅ Layer-velger: KUN disse to (ingen overlays)
+    L.control.layers(
+      {
+        "Landkart (OSM)": baseOSM,
+        "Sjøkart detaljert (Kartverket)": kartverketSea
+      },
+      null
+    ).addTo(map);
+
+    // Dine spots/piler/tekst legges i dette laget
+    const layer = L.layerGroup().addTo(map);
+
+
+    // Zoom så alle spots vises
+    const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+
+    // ---------- Hjelpefunksjoner ----------
+    function normDeg(d) { d = d % 360; return d < 0 ? d + 360 : d; }
+
+    function isInSector(dir, min, max) {
+      dir = normDeg(dir); min = normDeg(min); max = normDeg(max);
+      if (min <= max) return dir >= min && dir <= max;
+      return dir >= min || dir <= max; // krysser 0
+    }
+
+    function inRange(x, min, max) { return x >= min && x <= max; }
+
+    // Dine regler:
+    // RØD: feil retning eller utenfor min/max styrke
+    // GRØNN: innenfor ideal (og retning OK + min/max OK)
+    // GUL: ellers
+    // SVART hvis over max
+        function getStatus(windFromDir, windSpeed, spot) {
+        // ✅ 0) Over max vindstyrke => SVART (uansett retning)
+        if (Number.isFinite(windSpeed) && Number.isFinite(spot.speedMax) && windSpeed > spot.speedMax) {
+          return { color: "black", label: "Over max" };
+        }
+
+        // 1) Retning må være OK
+        const dirOk = isInSector(windFromDir, spot.dirMin, spot.dirMax);
+        if (!dirOk) return { color: "red", label: "Feil retning" };
+
+        // 2) Min/max vindstyrke
+        const minMaxOk = inRange(windSpeed, spot.speedMin, spot.speedMax);
+        if (!minMaxOk) return { color: "red", label: "Utenfor min/max" };
+
+        // 3) Grønn kun hvis innenfor ideal
+        const hasIdeal = Number.isFinite(spot.speedIdealMin) && Number.isFinite(spot.speedIdealMax);
+        if (hasIdeal && inRange(windSpeed, spot.speedIdealMin, spot.speedIdealMax)) {
+          return { color: "green", label: "Ideal" };
+        }
+
+        // 4) Ellers gul
+        return { color: "orange", label: "Innenfor min/max" };
+      }
+
+    function formatTime(iso) {
+      const d = new Date(iso);
+
+      // Ukedag kort på norsk, med punktum (søn.)
+      const weekday = d.toLocaleDateString("no-NO", { weekday: "short" });
+
+      // Dato som 26/4 (uten ledende null)
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+
+      // Klokke som 12:00 (alltid to siffer på time)
+      const hour = String(d.getHours()).padStart(2, "0");
+      const time = `${hour}:00`;
+
+      return `${weekday} ${day}/${month} -${time}`;
+    }
+
+    function floorToHour(date) {
+      const d = new Date(date);
+      d.setMinutes(0, 0, 0);
+      return d;
+    }
+
+    function findNearestTimeKey(mapByTime, targetISO, maxMinutes = 90) {
+      // mapByTime: Map(isoTime -> {windFromDir, windSpeed})
+      const target = new Date(targetISO).getTime();
+      const maxDiff = maxMinutes * 60 * 1000;
+
+      let bestKey = null;
+      let bestDiff = Infinity;
+
+      for (const key of mapByTime.keys()) {
+        const t = new Date(key).getTime();
+        const diff = Math.abs(t - target);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestKey = key;
+        }
+      }
+
+      if (bestDiff <= maxDiff) return bestKey;
+      return null; // for langt unna, da viser vi "mangler data"
+    }
+      function getNearestAtOrBefore(mapByTime, targetIso) {
+        // mapByTime: Map(isoString -> {windFromDir, windSpeed})
+        // Returnerer { time, value } for nærmeste tidspunkt <= target, eller null hvis ingen.
+
+        const target = Date.parse(targetIso);
+        if (!Number.isFinite(target)) return null;
+
+        // For ytelse: vi itererer keys (fungerer fint for få spots)
+        let bestTime = null;
+        let bestValue = null;
+
+        for (const [iso, value] of mapByTime.entries()) {
+          const t = Date.parse(iso);
+          if (!Number.isFinite(t)) continue;
+
+          if (t <= target && (bestTime === null || t > bestTime)) {
+            bestTime = t;
+            bestValue = value;
+          }
+        }
+
+        if (bestTime === null) return null;
+
+        return { time: new Date(bestTime).toISOString(), value: bestValue };
+      }
+
+    function buildFixedHourlyTimeline(days = 5) {
+      const start = floorToHour(new Date());  // nå, rundet til hel time
+      const totalHours = days * 24;
+      const arr = [];
+      for (let i = 0; i < totalHours; i++) {
+        const t = new Date(start.getTime() + i * 3600 * 1000);
+        arr.push(t.toISOString());
+      }
+      return arr;
+      }
+
+ 
+function isNightLocal(isoTime) {
+  // Lokal tid (din PC/iPhone)
+  const h = new Date(isoTime).getHours();
+  return (h < 6 || h >= 22); // natt 22–06 (juster om du vil)
+}
+
+function symbolToEmoji(code, tempC, isoTime) {
+  const c = Number(code);
+  const night = isoTime ? isNightLocal(isoTime) : false;
+
+  // Snøkoder (Open-Meteo/WMO): 71–77 og 85–86 【3-033fea】【2-c11ddf】
+  const isSnowCode = (c >= 71 && c <= 77) || c === 85 || c === 86;
+
+  // ✅ Overstyr: hvis modellen sier "snø", men temp ved 2m er tydelig > 0°C,
+  // vis regn i stedet (sludd/regn-opplevelse ved bakken).
+  if (isSnowCode && Number.isFinite(tempC) && tempC > -5 ) {
+    return "🌧️";
+  }
+
+  switch (c) {
+    case 0: return night ? "🌙" : "☀️";
+    case 1:
+    case 2: return night ? "🌙" : "🌤️";
+    case 3: return "☁️";
+
+    case 45:
+    case 48: return "🌫️";
+
+    case 51:
+    case 53:
+    case 55:
+    case 56:
+    case 57: return "🌦️";
+
+    case 61:
+    case 63:
+    case 65:
+    case 66:
+    case 67: return "🌧️";
+
+    case 71:
+    case 73:
+    case 75:
+    case 77: return "❄️";
+
+    case 80:
+    case 81:
+    case 82: return "🌧️";
+
+    case 85:
+    case 86: return "❄️";
+
+    case 95:
+    case 96:
+    case 99: return "⛈️";
+
+    default: return "🌥️";
+  }
+}
+
+    // SVG vindpil – roterer etter grader
+    function windArrowIcon(rotationDeg, color) {
+      rotationDeg = normDeg(rotationDeg);
+      const svg = `
+        <svg width="34" height="34" viewBox="0 0 100 100"
+             style="transform: rotate(${rotationDeg}deg); transform-origin: 50% 50%;">
+          <polygon points="50,6 72,52 60,52 60,94 40,94 40,52 28,52"
+                   fill="${color}" stroke="black" stroke-width="4" />
+        </svg>`;
+      return L.divIcon({
+        className: "wind-arrow-icon",
+        html: svg,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+    }
+
+    // ✅ Vindhastighet-label (uten bakgrunn)
+    // extraClass kan være f.eks. "gust-high"
+    function windSpeedIcon(text, extraClass = "") {
+      return L.divIcon({
+        className: "wind-speed-icon",
+        html: `<div class="wind-speed-label ${extraClass}">${text}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [-18, 18]
+      });
+    }
+
+    // ✅ Vær-symbol til venstre for pil (emoji)
+    function weatherIcon(emoji) {
+      return L.divIcon({
+        className: "weather-icon",
+        html: `<div class="weather-badge">${emoji}</div>`,
+        iconSize: [0, 0],
+        // Plassering: VENSTRE for spot-punktet (juster hvis du vil)
+        iconAnchor: [40, 10]
+      });
+    }
+
+      function alarmIcon(text) {
+    return L.divIcon({
+      className: "alarm-icon",
+      html: `<div class="alarm-badge">${text}</div>`,
+      iconSize: [0, 0],
+      // litt til venstre (vi finjusterer evt etterpå)
+      iconAnchor: [40, 45]
+    });
+  }
+
+    // ✅ Spot-navn over sirkelen
+    function spotNameIcon(name) {
+      return L.divIcon({
+        className: "spot-name-icon",
+        html: `<div class="spot-name-label">${name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 28] // flytter teksten opp (juster ved behov)
+      });
+    }
+
+    // ---------- Data: forecast per spot ----------
+    const forecastsBySpot = {};
+    let timeline = [];
+
+
+function cacheKey(spot) {
+  return `${CACHE_PREFIX}${spot.name}:${spot.lat.toFixed(3)},${spot.lng.toFixed(3)}`;
+}
+
+function loadCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.savedAt || !obj.data) return null;
+    if (Date.now() - obj.savedAt > CACHE_TTL_MS) return null;
+    return obj.data; // Array of [key,value]
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(key, mapByTime) {
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      savedAt: Date.now(),
+      data: Array.from(mapByTime.entries())
+    }));
+  } catch {
+    // ignore (storage full etc.)
+  }
+}
+
+// sleep(ms) har du allerede, ellers:
+// function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+
+// --- ✅ Komplett erstatning ---
+async function fetchForecastForSpot(spot) {
+  // 1) Cache først
+  const key = cacheKey(spot);
+  const cached = loadCache(key);
+  if (cached) {
+    return new Map(cached);
+  }
+
+  const url =
+    "https://api.open-meteo.com/v1/forecast" +
+    `?latitude=${spot.lat}` +
+    `&longitude=${spot.lng}` +
+    "&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
+    "&forecast_days=6" +
+    "&windspeed_unit=ms" +
+    "&timeformat=unixtime" +
+    "&timezone=Europe/Oslo";
+    // 3) Fetch + retry ved 429
+    let r = await fetch(url);
+
+  if (r.status === 429) {
+    await sleep(3000);
+    r = await fetch(url);
+  }
+
+  if (!r.ok) {
+    throw new Error(`HTTP ${r.status} for ${spot.name}`);
+  }
+
+  const data = await r.json();
+
+    // 4) Parse (timeformat=unixtime => time er sekunder)
+    const times  = data.hourly.time;  
+    const temps  = data.hourly.temperature_2m;               // unix seconds (array of numbers)
+    const speeds = data.hourly.wind_speed_10m;
+    const gusts  = data.hourly.wind_gusts_10m;
+    const dirs   = data.hourly.wind_direction_10m;
+    const codes  = data.hourly.weathercode;
+
+
+    const mapByTime = new Map();
+
+    for (let i = 0; i < times.length; i++) {
+      // times[i] er sekunder -> ms -> ISO (UTC)
+      const isoKey = new Date(Number(times[i]) * 1000).toISOString();
+
+      mapByTime.set(isoKey, {
+        temperature: Number(temps[i]),
+        windSpeed: Number(speeds[i]),
+        windGust: Number.isFinite(Number(gusts[i])) ? Number(gusts[i]) : null,
+        windFromDir: Number(dirs[i]),
+        symbolCode: Number(codes[i]) // weathercode som tall
+      });
+    }
+
+    // 5) Lagre i cache
+    saveCache(key, mapByTime);
+
+    return mapByTime;
+    }
+
+
+    function buildTimelineIntersection(maps, maxSteps) {
+      const masterTimes = Array.from(maps[0].keys());
+      const common = masterTimes.filter(t => maps.every(m => m.has(t)));
+      return common.slice(0, maxSteps);
+    }
+
+
+    // Vind fra VEST -> NORD (280° -> 30°), krysser 0°
+    const SEA_BREEZE_DIR_MIN = 280;
+    const SEA_BREEZE_DIR_MAX = 30;
+
+
+// Solgangsbris krever HELT klar himmel (Open-Meteo weathercode 0)
+// Delvis skyet (1–2) regnes ikke som sol
+
+    function isSunny(symbolCode) {
+      const c = Number(symbolCode);
+      return c === 0 ;
+    }
+
+    function isBetweenHoursLocal(isoTime, startHour, endHour) {
+      // isoTime er ISO-string (UTC) i timeline/usedTime. new Date(...) gir lokal tid i getHours()
+      const h = new Date(isoTime).getHours();
+      // Inkluderer 12:00, ekskluderer 20:00 (dvs. 12:00–19:59)
+      return h >= startHour && h < endHour;
+    }
+
+    // Solgangsbris-regel: kun retning + sol (vindstyrke ignoreres)
+    function seaBreezeOverrideOk(spot, windFromDir, symbolCode, isoTime) {
+      if (!spot.seaBreeze) return false;
+      if (!isSunny(symbolCode)) return false;
+
+      // ✅ Kun mellom kl 12 og 20 (lokal tid)
+      if (!isBetweenHoursLocal(isoTime, 12, 20)) return false;
+
+      // ✅ Kun riktig retning (vest/nord-sektor)
+      return isInSector(windFromDir, SEA_BREEZE_DIR_MIN, SEA_BREEZE_DIR_MAX);
+    }
+        
+    function getYrBinLocal(isoTime) {
+  const d = new Date(isoTime);         // lokal tid
+  const h = d.getHours();
+
+  // Yr-bins: 02–08, 08–14, 14–20, 20–02
+  if (h >= 2 && h < 8)  return { start: 2,  end: 8 };
+  if (h >= 8 && h < 14) return { start: 8,  end: 14 };
+  if (h >= 14 && h < 20) return { start: 14, end: 20 };
+  return { start: 20, end: 26 }; // 20–02 (26 betyr 02 neste dag)
+}
+
+function collectSpeedsForBin(mapByTime, isoTime) {
+  const d = new Date(isoTime);
+  const bin = getYrBinLocal(isoTime);
+
+  // Start på dagens dato kl bin.start
+  const start = new Date(d);
+  start.setMinutes(0,0,0);
+  start.setHours(bin.start % 24, 0, 0, 0);
+
+  // Slutt: hvis end=26 => 02 neste dag
+  const end = new Date(start);
+  end.setHours((bin.end % 24), 0, 0, 0);
+  if (bin.end > 24) end.setDate(end.getDate() + 1);
+
+  const arr = [];
+  for (let t = new Date(start); t < end; t.setHours(t.getHours()+1)) {
+    const key = t.toISOString();
+    const rec = mapByTime.get(key);
+    if (rec && Number.isFinite(rec.windSpeed)) arr.push(rec.windSpeed);
+  }
+  return arr;
+}
+
+    function binWindValue(mapByTime, isoTime, mode="max") {
+      const arr = collectSpeedsForBin(mapByTime, isoTime);
+      if (!arr.length) return null;
+      if (mode === "avg") return arr.reduce((a,b)=>a+b,0) / arr.length;
+      return Math.max(...arr); // "max"
+    }
+
+      function renderAtIndex(idx) {
+        layer.clearLayers();
+
+        const t = timeline[idx];
+        if (!t) {
+          timeLabel.textContent = "Ingen tidspunkter";
+          return;
+        }
+        timeLabel.textContent = `${formatTime(t)}`;
+
+        for (const spot of spots) {
+          const mapByTime = forecastsBySpot[spot.name];
+          if (!mapByTime) continue;
+
+          // Prøv først eksakt tid, ellers fallback til nærmeste før
+          let rec = mapByTime.get(t);
+          let usedTime = t;
+
+          if (!rec) {
+            const nearest = getNearestAtOrBefore(mapByTime, t);
+            if (!nearest) continue;
+            rec = nearest.value;
+            usedTime = nearest.time;
+          }
+
+          const tempC = rec.temperature;
+          
+          const windFromDir = rec.windFromDir;
+          const windSpeed   = rec.windSpeed;
+          const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
+          const displayWind = (yrLike !== null) ? yrLike : windSpeed;
+          const windGust    = rec.windGust;
+          const symbolCode  = rec.symbolCode;
+          const windTo      = (windFromDir + 180) % 360;
+
+          // Normal status (rød/gul/grønn/svart)
+          let status = getStatus(windFromDir, displayWind, spot);
+
+          // ✅ Solgangsbris: sol + vind fra vest→nord (uansett styrke)
+          const seaBreezeOk = seaBreezeOverrideOk(spot, windFromDir, symbolCode, usedTime);
+          if (seaBreezeOk) {
+            status = { color: "green", label: "Solgangsbris" };
+          }
+ 
+          // ✅ Visuell farge: bytt "red" til lys grå
+          const drawColor = (status.color === "red") ? BAD_CONDITION_COLOR : status.color;
+ 
+          // Vindkast i parentes
+          const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
+
+          // Alarm kun når solgangsbris er aktiv og spot har alarmText
+          const alarmLine =
+            (seaBreezeOk && spot.alarmText)
+              ? `<div style="color:#277556;font-weight:900;">${spot.alarmText}</div>`
+              : "";
+
+          // Sirkel
+          const circle = L.circleMarker([spot.lat, spot.lng], {
+            pane: "windPane",
+            color: drawColor,
+            radius: 10,
+            weight: 3,
+            fillOpacity: 0.20
+          }).addTo(layer);
+
+            circle.on("click", (e) => {
+              L.DomEvent.stop(e);   // hindrer at Leaflet sin popup tar over klikket
+              openSpotModal(spot);  // åpner din spot-modal
+            });
+          
+
+          // Spot-navn
+          L.marker([spot.lat, spot.lng], {
+            pane: "windPane",
+            icon: spotNameIcon(spot.name),
+            interactive: false,
+            zIndexOffset: 1300
+          }).addTo(layer);
+
+          // Vær-emoji
+         const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
+
+          // ✅ Alarmtekst til venstre for værsymbolet når solgangsbris trigges
+          if (seaBreezeOk && spot.alarmText) {
+            L.marker([spot.lat, spot.lng], {
+              pane: "windPane",
+              icon: alarmIcon(spot.alarmText),
+              interactive: false,
+              zIndexOffset: 1185
+            }).addTo(layer);
+          }
+
+          // Værikon
+          L.marker([spot.lat, spot.lng], {
+            pane: "windPane",
+            icon: weatherIcon(emoji),
+            interactive: false,
+            zIndexOffset: 1190
+          }).addTo(layer);
+
+          // Vindpil (samme farge som status – blir grønn ved solgangsbris)
+          L.marker([spot.lat, spot.lng], {
+            pane: "windPane",
+            icon: windArrowIcon(windTo, drawColor),
+            interactive: false,
+            zIndexOffset: 1200
+          }).addTo(layer);
+
+          // Vindtekst
+          L.marker([spot.lat, spot.lng], {
+            pane: "windPane",
+            icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
+            interactive: false,
+            zIndexOffset: 1250
+          }).addTo(layer);
+        }
+      }
+
+
+      async function mapWithConcurrency(items, limit, mapper) {
+        const results = new Array(items.length);
+        let nextIndex = 0;
+
+        async function worker() {
+          while (true) {
+            const i = nextIndex++;
+            if (i >= items.length) return;
+            results[i] = await mapper(items[i], i);
+          }
+        }
+
+        const workers = [];
+        for (let i = 0; i < Math.min(limit, items.length); i++) {
+          workers.push(worker());
+        }
+
+        await Promise.all(workers);
+        return results;
+      }
+
+
+    async function loadAll() {
+      statusMsg.textContent = "Laster...";
+      timeLabel.textContent = "Henter varsler...";
+      layer.clearLayers();
+
+      
+      const CONCURRENCY = 3; // prøv 3, hvis du får 429 igjen: sett til 2
+      const maps = await mapWithConcurrency(spots, CONCURRENCY, (spot) => fetchForecastForSpot(spot));
+
+      
+ 
+      spots.forEach((spot, i) => { forecastsBySpot[spot.name] = maps[i]; });
+
+      timeline = buildFixedHourlyTimeline(5); // 5 dager * 24 timer = 120 steg
+     function buildDaySeparators(timeline) {
+      const dayTrack = document.getElementById("dayTrack");
+      if (!dayTrack) return;
+
+      dayTrack.innerHTML = "";
+      if (!timeline || timeline.length < 2) return;
+
+      // Vi bruker timeline som "sannhet" og finner posisjon i %
+      // ved å mappe en dato/tid til nærmeste index i timeline.
+      const maxIndex = timeline.length - 1;
+
+      // Helper: finn index i timeline for et gitt tidspunkt (ms)
+      function findIndexForTimeMs(targetMs) {
+        // timeline er sortert time-for-time, så lineær søk er ok (120 elementer)
+        let bestI = 0;
+        let bestDiff = Infinity;
+        for (let i = 0; i < timeline.length; i++) {
+          const tMs = Date.parse(timeline[i]);
+          const diff = Math.abs(tMs - targetMs);
+          if (diff < bestDiff) { bestDiff = diff; bestI = i; }
+    }
+    return bestI;
+  }
+
+  // Label-format (dato)
+  const fmtDate = (d) =>
+    d.toLocaleDateString("no-NO", { weekday: "short", day: "2-digit", month: "2-digit" });
+
+  // Start og slutt basert på timeline
+  const startMs = Date.parse(timeline[0]);
+  const endMs   = Date.parse(timeline[maxIndex]);
+
+  // Finn første lokale midnatt (00:00) ETTER eller LIK timeline-start
+  const startDate = new Date(startMs);
+  const firstMidnight = new Date(startDate);
+  firstMidnight.setHours(0, 0, 0, 0);
+
+  // hvis timeline starter etter midnatt samme dag, gå til neste midnatt
+  if (firstMidnight.getTime() < startMs) {
+    firstMidnight.setDate(firstMidnight.getDate() + 1);
+  }
+
+  // Lag ticks for hver midnatt innenfor tidsvinduet
+  let d = firstMidnight;
+  let isFirst = true;
+
+  while (d.getTime() <= endMs) {
+    const idx = findIndexForTimeMs(d.getTime());
+    const leftPct = (idx / maxIndex) * 100;
+
+    const tick = document.createElement("div");
+    tick.className = "day-tick" + (isFirst ? " first" : "");
+    tick.style.left = leftPct + "%";
+    dayTrack.appendChild(tick);
+
+    const label = document.createElement("div");
+    label.className = "day-label" + (isFirst ? " first" : "");
+    label.style.left = leftPct + "%";
+    label.textContent = fmtDate(d);
+    dayTrack.appendChild(label);
+
+    // neste døgn (lokal tid)
+    d = new Date(d);
+    d.setDate(d.getDate() + 1);
+    isFirst = false;
+  }
+}
+
+      slider.min = 0;
+      slider.max = timeline.length - 1;
+      slider.value = 0;
+
+      // bygg dagskille-linje
+      buildDaySeparators(timeline);
+
+      renderAtIndex(0);
+
+      statusMsg.textContent = "";
+    }
+
+
+      // ===== Meny + Info (nr 3) =====
+      (function initMenuAndInfo() {
+        const menuBtn   = document.getElementById("menuBtn");
+        const dropdown  = document.getElementById("menuDropdown");
+        const infoBtn   = document.getElementById("infoBtn");
+        const modal     = document.getElementById("infoModal");
+        const closeBtn  = document.getElementById("infoClose");
+        const backdrop  = modal?.querySelector(".modal-backdrop");
+
+        // Hvis noe mangler i HTML: stopp uten å krasje resten av appen
+        if (!menuBtn || !dropdown || !infoBtn || !modal || !closeBtn || !backdrop) {
+          console.warn("Meny/Info: Fant ikke alle HTML-elementer. Sjekk id-er i index.html");
+          return;
+        }
+
+        function toggleDropdown() {
+          dropdown.classList.toggle("hidden");
+        }
+        function closeDropdown() {
+          dropdown.classList.add("hidden");
+        }
+        function openModal() {
+          modal.classList.remove("hidden");
+          modal.setAttribute("aria-hidden", "false");
+        }
+        function closeModal() {
+          modal.classList.add("hidden");
+          modal.setAttribute("aria-hidden", "true");
+        }
+
+        // Åpne/lukke meny
+        menuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleDropdown();
+        });
+
+        // Klikk på Info
+        infoBtn.addEventListener("click", () => {
+          closeDropdown();
+          openModal();
+        });
+
+        // Lukk modal
+        closeBtn.addEventListener("click", closeModal);
+        backdrop.addEventListener("click", closeModal);
+
+        // Klikk utenfor meny lukker meny
+        document.addEventListener("click", () => closeDropdown());
+
+        // ESC lukker modal
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeModal();
+        });
+
+        // Klikk inne i modal skal ikke “boble” videre
+        modal.querySelector(".modal-card").addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
+      })();
+
+      function openSpotModal(spot) {
+        console.log("Åpner spot-modal:", spot.name, spot.desc);
+        const modal = document.getElementById("spotModal");
+        const closeBtn = document.getElementById("spotClose");
+        const titleEl = document.getElementById("spotTitle");
+        const contentEl = document.getElementById("spotContent");
+        const backdrop = modal?.querySelector(".modal-backdrop");
+
+        if (!modal || !closeBtn || !titleEl || !contentEl || !backdrop) return;
+
+        titleEl.textContent = spot.name;
+
+        const dirText = `${spot.dirMin}° → ${spot.dirMax}°`;
+        const windText = `${spot.speedMin}–${spot.speedMax} m/s (ideal ${spot.speedIdealMin}–${spot.speedIdealMax})`;
+        const desc = spot.desc ? `<p class="spot-meta">${spot.desc}</p>` : "";
+        const access = spot.access ? `<p class="spot-meta"><b>Tilkomst:</b> ${spot.access}</p>` : "";
+        const hazards = spot.hazards ? `<p class="spot-meta"><b>Farer:</b> ${spot.hazards}</p>` : "";
+
+        const imgs = Array.isArray(spot.images) && spot.images.length
+          ? `<div class="spot-gallery">
+              ${spot.images.map(src => `<img src="${src}" alt="${spot.name}">`).join("")}
+            </div>`
+          : "";
+
+
+        contentEl.innerHTML = `
+          <p class="spot-meta"><b>Retningssektor:</b> ${dirText}</p>
+          <p class="spot-meta"><b>Vindgrenser:</b> ${windText}</p>
+          ${desc}
+          ${access}
+          ${hazards}
+          ${imgs}
+        `;
+
+        function close() {
+          modal.classList.add("hidden");
+          modal.setAttribute("aria-hidden", "true");
+          closeBtn.removeEventListener("click", close);
+          backdrop.removeEventListener("click", close);
+          document.removeEventListener("keydown", esc);
+        }
+
+        function esc(e) {
+          if (e.key === "Escape") close();
+        }
+
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
+        closeBtn.addEventListener("click", close);
+        backdrop.addEventListener("click", close);
+        document.addEventListener("keydown", esc);
+      }
+    // Events
+    slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
+   
+    // Start
+    loadAll().catch(err => {
+      console.error(err);
+      statusMsg.textContent = "Feil";
+      timeLabel.textContent = "Kunne ikke laste data. Se Console (F12).";
+    });
+  </script>
+</body>
+</html>
