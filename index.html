@@ -1297,6 +1297,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
       function openSpotModal(spot) {
         console.log("Åpner spot-modal:", spot.name, spot.desc);
+
         const modal = document.getElementById("spotModal");
         const closeBtn = document.getElementById("spotClose");
         const titleEl = document.getElementById("spotTitle");
@@ -1309,23 +1310,39 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
         const dirText = `${spot.dirMin}° → ${spot.dirMax}°`;
         const windText = `${spot.speedMin}–${spot.speedMax} m/s (ideal ${spot.speedIdealMin}–${spot.speedIdealMax})`;
+
+        // helper: kun vis hvis felt finnes
+        const p = (label, value) =>
+          value ? `<p class="spot-meta"><b>${label}:</b> ${value}</p>` : "";
+
         const desc = spot.desc ? `<p class="spot-meta">${spot.desc}</p>` : "";
-        const access = spot.access ? `<p class="spot-meta"><b>Tilkomst:</b> ${spot.access}</p>` : "";
-        const hazards = spot.hazards ? `<p class="spot-meta"><b>Farer:</b> ${spot.hazards}</p>` : "";
 
-        const imgs = Array.isArray(spot.images) && spot.images.length
-          ? `<div class="spot-gallery">
-              ${spot.images.map(src => `<img src="${src}" alt="${spot.name}">`).join("")}
-            </div>`
-          : "";
-
+        // ✅ FIX: faktisk <img>-tagger her
+        const imgs =
+          Array.isArray(spot.images) && spot.images.length
+            ? `<div class="spot-gallery">
+                ${spot.images
+                  .map(
+                    (src) => `<img src="${src}" alt="${spot.name}">`
+                  )
+                  .join("")}
+              </div>`
+            : "";
 
         contentEl.innerHTML = `
           <p class="spot-meta"><b>Retningssektor:</b> ${dirText}</p>
           <p class="spot-meta"><b>Vindgrenser:</b> ${windText}</p>
+
           ${desc}
-          ${access}
-          ${hazards}
+
+          ${p("Tilkomst", spot.access)}
+          ${p("Bunnforhold", spot.bottom)}
+          ${p("Strømforhold", spot.current)}
+          ${p("Optimale vindretninger", spot.optimalWind)}
+          ${p("Farer", spot.hazards)}
+          ${p("Restriksjoner", spot.restrictions)}
+          ${p("Notater", spot.notes)}
+
           ${imgs}
         `;
 
@@ -1347,6 +1364,8 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         backdrop.addEventListener("click", close);
         document.addEventListener("keydown", esc);
       }
+
+
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
    
