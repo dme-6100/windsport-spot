@@ -409,9 +409,9 @@ input[type="range"]::-moz-range-thumb {
           Hvert spot vurderes ut fra både <strong>vindstyrke og vindretning</strong>. Vindstyrken deles inn i følgende nivåer:</p>
 
           <ul>
-            <li><strong>Grå </strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 19 m/s</strong></li>
-            <li><strong>Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
-            <li><strong>Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> (optimalt område)</li>
+            <li><strong>  Grå</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 19 m/s</strong></li>
+            <li><strong>  Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
+            <li><strong>  Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> (optimalt område)</li>
           </ul>
 
           <p>Fargen vises kun når <strong>vindretningen også er innenfor spotets tillatte sektor</strong>.</p>
@@ -427,8 +427,7 @@ input[type="range"]::-moz-range-thumb {
 
           <p><strong>Kart og tidslinje</strong><br>
           Du kan velge mellom <strong>landkart og detaljert sjøkart</strong>. Vindpiler, spot‑markører og alarmer vises alltid over kartet.
-          Tidslinjen lar deg bla gjennom døgnet, med korrekt visning av <strong>dag/natt (sol/måne)</strong>.</p>
-
+          
           <p><strong>Bruk og oppdatering</strong><br>
           Appen kan brukes direkte i nettleseren eller legges til som <strong>app‑snarvei</strong> på mobil. Ved større oppdateringer kan det være nødvendig å laste appen på nytt for å se siste versjon.</p>
         
@@ -436,7 +435,6 @@ input[type="range"]::-moz-range-thumb {
           Denne applikasjonen er et veiledende verktøy for visning av vind‑ og værinformasjon basert på offentlige og tredjeparts datakilder. Informasjonen kan inneholde feil, forsinkelser eller lokale avvik, og det gis ingen garanti for fullstendighet eller nøyaktighet.
           Bruk av appen skjer på eget ansvar. Appen er ikke beregnet for navigasjon til sjøs, sikkerhetskritiske beslutninger eller operativ bruk innen maritime, yrkesmessige eller risikoutsatte aktiviteter. Den erstatter ikke offisielle varsler, nautiske sjøkart, værmeldingstjenester eller eget skjønn.
           Utvikler og bidragsytere kan ikke holdes ansvarlige for skader, tap eller ulemper som måtte oppstå som følge av bruk eller tillit til informasjonen som vises i appen.
-               
         </div>
       </div>
     </div>
@@ -446,7 +444,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-15";
+      import { spots } from "./spots.js?v=2026-04-26-17";
     
 
       
@@ -456,7 +454,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v15:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v17:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -661,55 +659,52 @@ function isNightLocal(isoTime) {
   return (h < 6 || h >= 22); // natt 22–06 (juster om du vil)
 }
 
-function symbolToEmoji(code, isoTime) {
+function symbolToEmoji(code, tempC, isoTime) {
   const c = Number(code);
   const night = isoTime ? isNightLocal(isoTime) : false;
 
-  switch (c) {
-    // Klart
-    case 0: return night ? "🌙" : "☀️";
+  // Snøkoder (Open-Meteo/WMO): 71–77 og 85–86 【3-033fea】【2-c11ddf】
+  const isSnowCode = (c >= 71 && c <= 77) || c === 85 || c === 86;
 
-    // Nesten klart / delvis klart
+  // ✅ Overstyr: hvis modellen sier "snø", men temp ved 2m er tydelig > 0°C,
+  // vis regn i stedet (sludd/regn-opplevelse ved bakken).
+  if (isSnowCode && Number.isFinite(tempC) && tempC > -5 ) {
+    return "🌧️";
+  }
+
+  switch (c) {
+    case 0: return night ? "🌙" : "☀️";
     case 1:
     case 2: return night ? "🌙" : "🌤️";
-
-    // Skyet
     case 3: return "☁️";
 
-    // Tåke
     case 45:
     case 48: return "🌫️";
 
-    // Yr
     case 51:
     case 53:
     case 55:
     case 56:
     case 57: return "🌦️";
 
-    // Regn / underkjølt regn
     case 61:
     case 63:
     case 65:
     case 66:
     case 67: return "🌧️";
 
-    // Snø
     case 71:
     case 73:
     case 75:
     case 77: return "❄️";
 
-    // Regnbyger
     case 80:
     case 81:
     case 82: return "🌧️";
 
-    // Snøbyger
     case 85:
     case 86: return "❄️";
 
-    // Torden
     case 95:
     case 96:
     case 99: return "⛈️";
@@ -717,7 +712,6 @@ function symbolToEmoji(code, isoTime) {
     default: return "🌥️";
   }
 }
-
 
     // SVG vindpil – roterer etter grader
     function windArrowIcon(rotationDeg, color) {
@@ -829,7 +823,7 @@ async function fetchForecastForSpot(spot) {
     "https://api.open-meteo.com/v1/forecast" +
     `?latitude=${spot.lat}` +
     `&longitude=${spot.lng}` +
-    "&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
+    "&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,weathercode" +
     "&forecast_days=6" +
     "&windspeed_unit=ms" +
     "&timeformat=unixtime" +
@@ -850,11 +844,13 @@ async function fetchForecastForSpot(spot) {
   const data = await r.json();
 
     // 4) Parse (timeformat=unixtime => time er sekunder)
-    const times  = data.hourly.time;                 // unix seconds (array of numbers)
+    const times  = data.hourly.time;  
+    const temps  = data.hourly.temperature_2m;               // unix seconds (array of numbers)
     const speeds = data.hourly.wind_speed_10m;
     const gusts  = data.hourly.wind_gusts_10m;
     const dirs   = data.hourly.wind_direction_10m;
     const codes  = data.hourly.weathercode;
+
 
     const mapByTime = new Map();
 
@@ -863,6 +859,7 @@ async function fetchForecastForSpot(spot) {
       const isoKey = new Date(Number(times[i]) * 1000).toISOString();
 
       mapByTime.set(isoKey, {
+        temperature: Number(temps[i]),
         windSpeed: Number(speeds[i]),
         windGust: Number.isFinite(Number(gusts[i])) ? Number(gusts[i]) : null,
         windFromDir: Number(dirs[i]),
@@ -870,11 +867,11 @@ async function fetchForecastForSpot(spot) {
       });
     }
 
-  // 5) Lagre i cache
-  saveCache(key, mapByTime);
+    // 5) Lagre i cache
+    saveCache(key, mapByTime);
 
-  return mapByTime;
-}
+    return mapByTime;
+    }
 
 
     function buildTimelineIntersection(maps, maxSteps) {
@@ -890,11 +887,11 @@ async function fetchForecastForSpot(spot) {
 
 
 // Solgangsbris krever HELT klar himmel (Open-Meteo weathercode 0)
-// Delvis skyet (1–2) regnes ikke som so
+// Delvis skyet (1–2) regnes ikke som sol
+
     function isSunny(symbolCode) {
       const c = Number(symbolCode);
       return c === 0 ;
-
     }
 
     function isBetweenHoursLocal(isoTime, startHour, endHour) {
@@ -982,6 +979,8 @@ function collectSpeedsForBin(mapByTime, isoTime) {
             usedTime = nearest.time;
           }
 
+          const tempC = rec.temperature;
+          
           const windFromDir = rec.windFromDir;
           const windSpeed   = rec.windSpeed;
           const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
@@ -1001,7 +1000,6 @@ function collectSpeedsForBin(mapByTime, isoTime) {
  
           // ✅ Visuell farge: bytt "red" til lys grå
           const drawColor = (status.color === "red") ? BAD_CONDITION_COLOR : status.color;
-          ``
  
           // Vindkast i parentes
           const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
@@ -1040,7 +1038,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           }).addTo(layer);
 
           // Vær-emoji
-          const emoji = symbolToEmoji(symbolCode, usedTime);
+         const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
 
           // ✅ Alarmtekst til venstre for værsymbolet når solgangsbris trigges
           if (seaBreezeOk && spot.alarmText) {
