@@ -83,7 +83,7 @@ export const spots = [
     lat: 62.32188617713419,
     lng: 5.624221778188496,
     dirMin: 200,
-    dirMax: 330,
+    dirMax: 290,
   }),
 
   makeSpot({
