@@ -1028,8 +1028,9 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           
           const windFromDir = rec.windFromDir;
           const windSpeed   = rec.windSpeed;
-          const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
-          const displayWind = (yrLike !== null) ? yrLike : windSpeed;
+          //const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
+          //const displayWind = (yrLike !== null) ? yrLike : windSpeed;
+          const displayWind = windSpeed; // ekte timeverdi fra Open-Meteo
           const windGust    = rec.windGust;
           const symbolCode  = rec.symbolCode;
           const windTo      = (windFromDir + 180) % 360;
