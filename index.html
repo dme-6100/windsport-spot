@@ -383,6 +383,35 @@ input[type="range"]::-moz-range-thumb {
     .day-track { height: 26px; }
   }
 
+.sport-filter-control {
+  background: rgba(255,255,255,0.95);
+  padding: 6px 8px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+  font-family: system-ui, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.sport-filter-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.sport-filter-control label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sport-filter-control input[type="checkbox"] {
+  margin: 0;
+}
 
   </style>
 
@@ -491,7 +520,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-05-21-19";
+      import { spots } from "./spots.js?v=2026-04-26-19";
     
 
       
@@ -501,7 +530,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v20:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v19:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -571,6 +600,45 @@ input[type="range"]::-moz-range-thumb {
       null
     ).addTo(map);
 
+    const SportFilterControl = L.Control.extend({
+  options: { position: "topright" },
+
+  onAdd: function () {
+    const container = L.DomUtil.create("div", "sport-filter-control");
+
+    container.innerHTML = `
+      <div class="sport-filter-row">
+        <label>
+          <input type="checkbox" id="sportKite" checked>
+          Kite
+        </label>
+        <label>
+          <input type="checkbox" id="sportWing" checked>
+          Wing
+        </label>
+      </div>
+    `;
+
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+
+    const kiteBox = container.querySelector("#sportKite");
+    const wingBox = container.querySelector("#sportWing");
+
+    function updateFilter() {
+      currentSportFilter.kite = kiteBox.checked;
+      currentSportFilter.wing = wingBox.checked;
+      renderAtIndex(parseInt(slider.value, 10));
+    }
+
+    kiteBox.addEventListener("change", updateFilter);
+    wingBox.addEventListener("change", updateFilter);
+
+    return container;
+  }
+});
+
+new SportFilterControl().addTo(map);
     // Dine spots/piler/tekst legges i dette laget
     const layer = L.layerGroup().addTo(map);
 
@@ -578,6 +646,8 @@ input[type="range"]::-moz-range-thumb {
     // Zoom så alle spots vises
     const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
     if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+
+    
 
     // ---------- Hjelpefunksjoner ----------
     function normDeg(d) { d = d % 360; return d < 0 ? d + 360 : d; }
@@ -854,7 +924,32 @@ function saveCache(key, mapByTime) {
 
 // sleep(ms) har du allerede, ellers:
 // function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+let currentSportFilter = {
+  kite: true,
+  wing: true
+};
 
+function matchesSport(spot) {
+  const sports = Array.isArray(spot.sports) && spot.sports.length
+    ? spot.sports
+    : ["kite", "wing"];
+
+  const showKite = currentSportFilter.kite;
+  const showWing = currentSportFilter.wing;
+
+  // Ingen avhuking = vis ingen
+  if (!showKite && !showWing) return false;
+
+  // Begge avhuket = vis alle som matcher minst én
+  if (showKite && showWing) {
+    return sports.includes("kite") || sports.includes("wing");
+  }
+
+  if (showKite) return sports.includes("kite");
+  if (showWing) return sports.includes("wing");
+
+  return false;
+}
 
 // --- ✅ Komplett erstatning ---
 async function fetchForecastForSpot(spot) {
@@ -1010,6 +1105,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         timeLabel.textContent = `${formatTime(t)}`;
 
         for (const spot of spots) {
+          if (!matchesSport(spot)) continue;
           const mapByTime = forecastsBySpot[spot.name];
           if (!mapByTime) continue;
 
