@@ -56,8 +56,8 @@ export const spots = [
     lng: 5.577218252855619,
     dirMin: 180,
     dirMax: 280,
-    sports: ["wing"],
-    desc: "Gå ut bak molo",
+    sports: ["kite","wing"],
+    desc: "Wingfoil:Gå ut bak molo. Kite: Opprigg og launch på gresset nærmere brua ",
     access: "Parkering til 2-3 biler. Kort gange til rigg.",
     hazards: "Grunt ved lavvann. Mye tang. Pass opp for stein.",
     images: ["img/spots/Koparstad_1.jpeg"],
@@ -163,7 +163,7 @@ export const spots = [
     lng: 6.0463,
     dirMin: 290,
     dirMax: 45,
-    sports: ["kite"],
+    sports: ["kite","wing"],
   }),
 
   makeSpot({
@@ -172,7 +172,7 @@ export const spots = [
     lng: 6.0897522,
     dirMin: 135,
     dirMax: 250,
-    sports: ["kite", "wing"],
+    sports: ["kite"],
   }),
 
   makeSpot({
