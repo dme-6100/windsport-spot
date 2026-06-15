@@ -21,7 +21,35 @@ function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
 }
 
 export const spots = [
-  // ===== DINE EKSISTERENDE (uendret) =====
+    // MØRE & ROMSDAL
+
+   makeSpot({
+    name: "Hildre",
+    lat: 62.609175,
+    lng: 6.350941,
+    dirMin: 10,
+    dirMax: 100,
+      }),
+      
+  makeSpot({
+    name: "Malbukta",
+    lat: 62.725565,
+    lng: 6.69825,
+    // “det meste” (krysser 0)
+    dirMin: 300,
+    dirMax: 170,
+    desc:
+      "Liten bergarm (Tangen) gir flatt vann på lesiden. Litt steinete launch fra gressflekk. Holmer tar siste rester av bølger.",
+    access:
+      "Parkér ved veien (evt. hos bonde hvis ok). Gå ca. fem minutter utover mot havet langs liten traktorvei.",
+    bottom: "Noen steiner innerst i vika; beste forhold ytterst i vika.",
+    hazards:
+      "Steiner mot land innerst. Ved rek kan du dras mot motsatt side av vika (også litt steinete). Krever kontroll for å holde på her.",
+    current: "Lite strøm.",
+    optimalWind:
+      "Det meste kan være bra (helt ute i havgapet). Ofte nordvest–nordøst og sør–sørøst (vind dreies litt av Stemshesten).",
+  }),
+
   makeSpot({
     name: "Koparstad",
     lat: 62.33516743664832,
@@ -83,7 +111,7 @@ export const spots = [
     lat: 62.32188617713419,
     lng: 5.624221778188496,
     dirMin: 200,
-    dirMax: 290,
+    dirMax: 330,
   }),
 
   makeSpot({
@@ -114,8 +142,8 @@ export const spots = [
     name: "Roaldsanden",
     lat: 62.5747,
     lng: 6.1263,
-    dirMin: 0,
-    dirMax: 135,
+    dirMin: 10,
+    dirMax: 100,
   }),
 
   makeSpot({
@@ -473,25 +501,6 @@ export const spots = [
       "Sønnavind pleier å være kraftig i Trøndelag – når det blåser riktig, blåser det ofte kraftig.",
   }),
 
-  // MØRE & ROMSDAL
-  makeSpot({
-    name: "Malbukta",
-    lat: 62.725565,
-    lng: 6.69825,
-    // “det meste” (krysser 0)
-    dirMin: 300,
-    dirMax: 170,
-    desc:
-      "Liten bergarm (Tangen) gir flatt vann på lesiden. Litt steinete launch fra gressflekk. Holmer tar siste rester av bølger.",
-    access:
-      "Parkér ved veien (evt. hos bonde hvis ok). Gå ca. fem minutter utover mot havet langs liten traktorvei.",
-    bottom: "Noen steiner innerst i vika; beste forhold ytterst i vika.",
-    hazards:
-      "Steiner mot land innerst. Ved rek kan du dras mot motsatt side av vika (også litt steinete). Krever kontroll for å holde på her.",
-    current: "Lite strøm.",
-    optimalWind:
-      "Det meste kan være bra (helt ute i havgapet). Ofte nordvest–nordøst og sør–sørøst (vind dreies litt av Stemshesten).",
-  }),
 
   // TROMS
   makeSpot({
