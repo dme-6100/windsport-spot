@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="no">
-<head>
+/* OPPDATERING, FINN DENNE: const CACHE_PREFIX = "omForecast:v20:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  <
+head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vind-spotter</title>
@@ -520,7 +521,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-26-20";
+      import { spots } from "./spots.js?v=2026-04-20-19";
     
 
       
@@ -530,7 +531,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v20:"; // OPPDATERING. OPPDATERE. Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v20:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
