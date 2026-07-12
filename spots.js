@@ -21,7 +21,7 @@ function makeSpot({ name, lat, lng, dirMin, dirMax, ...rest }) {
 }
 
 export const spots = [
-  // MØRE & ROMSDAL
+  // MØRE OG ROMSDAL
   makeSpot({
     name: "Hildre",
     lat: 62.609175,
@@ -32,22 +32,16 @@ export const spots = [
   }),
 
   makeSpot({
-    name: "Malbukta",
-    lat: 62.725565,
-    lng: 6.69825,
-    dirMin: 300,
-    dirMax: 170,
+    name: "Gjerdsvika",
+    lat: 62.261111618436395,
+    lng: 5.5609770343137,
+    dirMin: 270,
+    dirMax: 320,
     sports: ["kite", "wing"],
-    desc:
-      "Liten bergarm (Tangen) gir flatt vann på lesiden. Litt steinete launch fra gressflekk. Holmer tar siste rester av bølger.",
-    access:
-      "Parkér ved veien (evt. hos bonde hvis ok). Gå ca. fem minutter utover mot havet langs liten traktorvei.",
-    bottom: "Noen steiner innerst i vika; beste forhold ytterst i vika.",
-    hazards:
-      "Steiner mot land innerst. Ved rek kan du dras mot motsatt side av vika (også litt steinete). Krever kontroll for å holde på her.",
-    current: "Lite strøm.",
-    optimalWind:
-      "Det meste kan være bra (helt ute i havgapet). Ofte nordvest–nordøst og sør–sørøst (vind dreies litt av Stemshesten).",
+    desc: "Åpen vik på ytre Søre Sunnmøre. Kan gi gode forhold for kite og wing når vest/nordvest treffer.",
+    bottom: "Varierende bunn med stein enkelte steder.",
+    hazards: "Bølger og stein krever kontroll. Ikke ideelt for helt ferske ved mye sjø.",
+    optimalWind: "Vest til nordvest.",
   }),
 
   makeSpot({
@@ -56,22 +50,53 @@ export const spots = [
     lng: 5.577218252855619,
     dirMin: 180,
     dirMax: 280,
-    sports: ["kite","wing"],
-    desc: "Wingfoil:Gå ut bak molo. Kite: Opprigg og launch på gresset nærmere brua ",
+    sports: ["kite", "wing"],
+    desc: "Wingfoil: gå ut bak molo. Kite: opprigg og launch på gresset nærmere brua.",
     access: "Parkering til 2-3 biler. Kort gange til rigg.",
-    hazards: "Grunt ved lavvann. Mye tang. Pass opp for stein.",
+    bottom: "Grunt ved lavvann. Mye tang.",
+    hazards: "Pass opp for stein, tang og grunt vann.",
+    optimalWind: "Sør til vest.",
     images: ["img/spots/Koparstad_1.jpeg"],
   }),
 
   makeSpot({
-    name: "Utrøna naustet",
-    lat: 62.149,
-    lng: 6.053,
-    dirMin: 100,
-    dirMax: 250,
+    name: "Toftestøa",
+    lat: 62.32188617713419,
+    lng: 5.624221778188496,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["wing"],
+    desc: "Lokal spot for korte foil- og freerideøkter. Egner seg best med lokalkunnskap.",
+    access: "Lokal tilkomst. Sjekk parkering og riggplass før bruk.",
+    hazards: "Små spotforhold og lokale grunner/stein kan forekomme.",
+    optimalWind: "Sørvest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Remøyvika",
+    lat: 62.37645465628526,
+    lng: 5.637361457002523,
+    dirMin: 0,
+    dirMax: 100,
     sports: ["kite", "wing"],
-    seaBreeze: true,
-    alarmText: "UTRØNA-ALARM",
+    desc: "Lokal spot for wingfoil og kiting. Best for korte økter når retningen treffer.",
+    access: "Lokal tilkomst. Sjekk parkering og riggområde.",
+    hazards: "Krever lokalkunnskap ved grunner, stein og trafikk i området.",
+    optimalWind: "Nord til øst.",
+  }),
+
+  makeSpot({
+    name: "Osnessanden",
+    lat: 62.3442,
+    lng: 5.8241,
+    dirMin: 270,
+    dirMax: 45,
+    sports: ["kite", "wing"],
+    desc: "Sandstrand med god plass. Egnet for freeride når vindsektoren treffer.",
+    access: "Enkel strandtilkomst. Vis hensyn til badebruk og folk på stranda.",
+    bottom: "Sand.",
+    hazards: "Sjekk folk på stranda og lokale forhold før launch.",
+    optimalWind: "Vest til nordlig sektor.",
   }),
 
   makeSpot({
@@ -81,6 +106,10 @@ export const spots = [
     dirMin: 270,
     dirMax: 70,
     sports: ["wing"],
+    desc: "Eksponert havside som kan gi gode forhold for wingfoil, windsurf og bølger.",
+    access: "Strand-/kysttilkomst. Sjekk forhold før økt.",
+    hazards: "Eksponert for havswell. Ikke nybegynnersted ved bølger.",
+    optimalWind: "Vest til nordlig sektor.",
   }),
 
   makeSpot({
@@ -101,6 +130,40 @@ export const spots = [
     sports: ["wing"],
     seaBreeze: true,
     alarmText: "UTRØNA-ALARM",
+    desc: "Fjord-/termikkalternativ rundt Volda. Kan fungere fint når lokal bris slår inn.",
+    access: "Lokal tilkomst. Sjekk parkering og riggplass.",
+    hazards: "Lokale vindskift og varierende bris kan forekomme.",
+    optimalWind: "Øst til sørvest.",
+  }),
+
+  makeSpot({
+    name: "Utrøna naustet",
+    lat: 62.149,
+    lng: 6.053,
+    dirMin: 100,
+    dirMax: 250,
+    sports: ["kite", "wing"],
+    seaBreeze: true,
+    alarmText: "UTRØNA-ALARM",
+    desc: "Fjordspot ved Volda som kan fungere godt ved lokal bris og termikk.",
+    access: "Tilkomst ved naustet. Sjekk parkering og riggområde.",
+    hazards: "Lokale vindskift og fjordforhold. Bruk varsomhet ved lite vind nær land.",
+    optimalWind: "Øst til sørvest.",
+  }),
+
+  makeSpot({
+    name: "Rotevatnet",
+    lat: 62.140510082543315,
+    lng: 6.11317285591574,
+    dirMin: 200,
+    dirMax: 300,
+    sports: ["kite", "wing"],
+    seaBreeze: true,
+    alarmText: "UTRØNA-ALARM",
+    desc: "Innsjøalternativ rundt Volda. Flatt til choppy vann når brisen treffer.",
+    access: "Lokal tilkomst. Sjekk egnet riggområde og parkering.",
+    hazards: "Vind kan være lokal og skiftende. Vær obs på land og trange soner.",
+    optimalWind: "Sørvest til vest/nordvest.",
   }),
 
   makeSpot({
@@ -113,24 +176,6 @@ export const spots = [
   }),
 
   makeSpot({
-    name: "Toftestøa",
-    lat: 62.32188617713419,
-    lng: 5.624221778188496,
-    dirMin: 200,
-    dirMax: 330,
-    sports: ["wing"],
-  }),
-
-  makeSpot({
-    name: "Osnessanden",
-    lat: 62.3442,
-    lng: 5.8241,
-    dirMin: 270,
-    dirMax: 45,
-    sports: ["kite", "wing"],
-  }),
-
-  makeSpot({
     name: "Grevsneset",
     lat: 62.1165,
     lng: 6.095,
@@ -140,66 +185,12 @@ export const spots = [
   }),
 
   makeSpot({
-    name: "Giske",
-    lat: 62.5058,
-    lng: 6.0475,
-    dirMin: 0,
-    dirMax: 359,
-    sports: ["kite", "wing"],
-  }),
-
-  makeSpot({
-    name: "Roaldsanden",
-    lat: 62.5747,
-    lng: 6.1263,
-    dirMin: 10,
-    dirMax: 100,
-    sports: ["kite"],
-  }),
-
-  makeSpot({
-    name: "Blimssanden",
-    lat: 62.5654,
-    lng: 6.0463,
-    dirMin: 290,
-    dirMax: 45,
-    sports: ["kite","wing"],
-  }),
-
-  makeSpot({
-    name: "Blindheimsvika",
-    lat: 62.547923,
-    lng: 6.0897522,
-    dirMin: 135,
-    dirMax: 250,
-    sports: ["kite"],
-  }),
-
-  makeSpot({
-    name: "Remøyvika",
-    lat: 62.37645465628526,
-    lng: 5.637361457002523,
-    dirMin: 0,
-    dirMax: 100,
-    sports: ["kite", "wing"],
-  }),
-
-  makeSpot({
     name: "Sandevika",
     lat: 62.360843130269245,
     lng: 5.721266404814642,
     dirMin: 340,
     dirMax: 40,
     sports: ["wing"],
-  }),
-
-  makeSpot({
-    name: "Gjerdsvika",
-    lat: 62.261111618436395,
-    lng: 5.5609770343137,
-    dirMin: 270,
-    dirMax: 320,
-    sports: ["kite", "wing"],
   }),
 
   makeSpot({
@@ -221,14 +212,477 @@ export const spots = [
   }),
 
   makeSpot({
-    name: "Rotevatnet",
-    lat: 62.140510082543315,
-    lng: 6.11317285591574,
-    dirMin: 200,
-    dirMax: 300,
+    name: "Malbukta",
+    lat: 62.725565,
+    lng: 6.69825,
+    dirMin: 300,
+    dirMax: 170,
     sports: ["kite", "wing"],
-    seaBreeze: true,
-    alarmText: "UTRØNA-ALARM",
+    desc: "Liten bergarm gir flatt vann på lesiden. Holmer demper siste rester av bølgene.",
+    access: "Parkér ved veien, eventuelt etter avtale med grunneier. Gå ca. fem minutter langs liten traktorvei.",
+    bottom: "Noen steiner innerst i vika. Beste forhold ytterst i vika.",
+    hazards: "Steinete launch og driftfare. Ved rek kan du drive mot motsatt side av vika.",
+    current: "Lite strøm.",
+    optimalWind: "Mange retninger kan fungere. Ofte nordvest–nordøst og sør–sørøst.",
+  }),
+
+  makeSpot({
+    name: "Giske",
+    lat: 62.5058,
+    lng: 6.0475,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "Fleksibel øyspot rundt Giske. Kan fungere godt når andre spots i området blir gusty.",
+    access: "Lokal tilkomst. Sjekk parkering og riggplass.",
+    hazards: "Lokale vindskift og stein/grunner kan forekomme.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Roaldsanden",
+    lat: 62.5747,
+    lng: 6.1263,
+    dirMin: 10,
+    dirMax: 100,
+    sports: ["kite"],
+    desc: "Langgrunn strand ved flyplassen. Ofte flatt vann utenfor sandbanken.",
+    access: "Strandtilkomst. Sjekk lokale forhold og parkering.",
+    bottom: "Sand, langgrunt.",
+    hazards: "Vær obs på vindskift og lokale forhold ved nordlig dreining.",
+    optimalWind: "Øst til nordøst.",
+  }),
+
+  makeSpot({
+    name: "Blimssanden",
+    lat: 62.5654,
+    lng: 6.0463,
+    dirMin: 290,
+    dirMax: 45,
+    sports: ["kite", "wing"],
+    desc: "Spot ved Vigra/Giske. Kan gi både bølger nær land og mer dønning lenger ute.",
+    access: "Strandtilkomst. Sjekk parkering og folk på stranda.",
+    hazards: "Bølger kan bryte inne ved land.",
+    optimalWind: "Nordlig til vestlig vind.",
+  }),
+
+  makeSpot({
+    name: "Blindheimsvika",
+    lat: 62.547923,
+    lng: 6.0897522,
+    dirMin: 135,
+    dirMax: 250,
+    sports: ["kite"],
+    desc: "Langgrunt område som fungerer godt ved riktig sørlig sektor.",
+    access: "Lokal tilkomst. Sjekk parkering og høyvann/lavvann.",
+    hazards: "Kan få plutselig mye vind i høstsesong. Vær obs på lokale forhold.",
+    optimalWind: "Sørøst til sørvest.",
+  }),
+
+  makeSpot({
+    name: "Farstadstranda",
+    lat: 62.9760,
+    lng: 7.0120,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Åpen sandstrand mot Hustadvika. Kan gi sterke havforhold og gode forhold for viderekomne.",
+    access: "Strandtilkomst. Sjekk parkering og lokale forhold.",
+    bottom: "Sandstrand.",
+    hazards: "Bølgeeksponert. Best for viderekomne ved dønning.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Skjærva",
+    lat: 63.1110,
+    lng: 7.7350,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["wing", "windsurf"],
+    desc: "Urban windsurf-/wingfoilspot i Kristiansund. Choppy og vindutsatt.",
+    access: "Urban tilkomst. Sjekk lokale launchmuligheter.",
+    hazards: "Choppy vann og bynære hindringer/kanter kan forekomme.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  // AGDER
+  makeSpot({
+    name: "Husebysanden",
+    lat: 58.1085,
+    lng: 6.6526,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Langgrunn sandstrand ved Lista. Egnet for nybegynnere og opplæring i moderat vind.",
+    access: "Strandtilkomst. Sjekk parkering og lokale soner.",
+    bottom: "Sand, langgrunt.",
+    hazards: "Bruk god avstand til fuglevernsoner.",
+    optimalWind: "Flere vindretninger kan fungere i moderate forhold.",
+  }),
+
+  makeSpot({
+    name: "Havika",
+    lat: 58.0919,
+    lng: 6.6900,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Åpen Lista-strand med både flatt vann og bølger avhengig av vind og swell.",
+    access: "Strandtilkomst. Sjekk parkering og lokale forhold.",
+    bottom: "Sandstrand.",
+    hazards: "Åpen strand kan gi bølger og krevende forhold ved swell.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Kviljosanden / Nesheimsanden",
+    lat: 58.0895,
+    lng: 6.7700,
+    dirMin: 180,
+    dirMax: 320,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Lang sandstrand på Lista. Fungerer godt med onshore/side-onshore og passer fra nybegynner til viderekommen.",
+    access: "Strandtilkomst. Sjekk parkering.",
+    bottom: "Sandstrand.",
+    hazards: "Sjekk fredningsområder ved Kviljoodden før bruk.",
+    optimalWind: "Onshore og side-onshore.",
+  }),
+
+  makeSpot({
+    name: "Lomsesanden",
+    lat: 58.0715,
+    lng: 6.7618,
+    dirMin: 330,
+    dirMax: 30,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Stor bukt med langgrunt område. Nordavind kan gi gode windsurf-/wingforhold med grunt og choppy vann.",
+    access: "Strandtilkomst. Sjekk lokale parkeringsforhold.",
+    bottom: "Langgrunt område.",
+    hazards: "Choppy vann ved vind. Sjekk lokale forhold.",
+    optimalWind: "Nordavind.",
+  }),
+
+  makeSpot({
+    name: "Østhassel / Markaområdet",
+    lat: 58.0800,
+    lng: 6.6280,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Alternativ Lista-spot når bølgene blir store andre steder.",
+    access: "Sjekk lokal tilkomst og parkering.",
+    bottom: "Varierende bunn med steinete partier.",
+    hazards: "Mer relevant for erfarne ved swell og stein.",
+    optimalWind: "Flere vindretninger kan fungere avhengig av swell.",
+  }),
+
+  makeSpot({
+    name: "Flætten/Borhaug havn",
+    lat: 58.1024277,
+    lng: 6.5849033,
+    dirMin: 260,
+    dirMax: 320,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Klassisk Lista wave-/freeride-spot ved Borhaug molo/Pisserenna. Gir alternativ til storhavsbølger og kan gi mer håndterlige forhold.",
+    access: "Kjør og parker helt frem til riggområdet.",
+    bottom: "Stein og sand.",
+    hazards: "Ikke for ferske kitere. Stein, molo og båttrafikk krever kontroll.",
+    current: "Ingen strøm her inne.",
+    optimalWind: "Vest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Kvavik",
+    lat: 58.1089,
+    lng: 7.0912,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Mer skjermet elve-/strandspot i Lyngdal. Aktuell for lettere forhold og nybegynnere når vindretningen treffer.",
+    access: "Strand-/elveos-tilkomst. Sjekk parkering.",
+    bottom: "Sand/elveområde.",
+    hazards: "Sjekk strøm, dybde og lokale forhold.",
+    optimalWind: "Avhengig av lokal retning.",
+  }),
+
+  makeSpot({
+    name: "Hamresanden",
+    lat: 58.1938,
+    lng: 8.0852,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Lang og vindutsatt strand nær Kristiansand. Aktuell for vannsport når forholdene passer.",
+    access: "God strandtilkomst. Sjekk parkering og badebruk.",
+    bottom: "Sandstrand.",
+    hazards: "Eksponert strand. Vær obs på folk og bading.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  // ROGALAND
+  makeSpot({
+    name: "Brusand",
+    lat: 58.5411,
+    lng: 5.7338,
+    dirMin: 100,
+    dirMax: 150,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Sjelden sørøst-spot på Jæren. Stor strand og ofte bølger.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sandstrand.",
+    hazards: "Nybegynner kun i rolige forhold. Bølger kan bli krevende.",
+    restrictions: "På Jæren må klubb-/verne- og sesongregler kontrolleres før bruk.",
+    optimalWind: "Sørøst.",
+  }),
+
+  makeSpot({
+    name: "Refsnesstranda",
+    lat: 58.695138,
+    lng: 5.548782,
+    dirMin: 190,
+    dirMax: 240,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Miks av flatt vann ved steinene og bølger lenger ute. God plass å rigge på sandstrand.",
+    access: "Kjør Nordsjøveien sørover forbi Bore og Orre. Ta av ved skilt til Refsnes badestrand. Parkér, gå over liten bro og nordover.",
+    bottom: "Sand.",
+    hazards: "Steiner rundt elveutløp, og ripstrøm ved swell.",
+    current: "Ikke til bekymring i rolige forhold, men vær obs ved swell.",
+    optimalWind: "Sør–sørvest til sørvest. Ren sør kan bli ustabil, og for mye vest gir mer bølger inn.",
+  }),
+
+  makeSpot({
+    name: "Krosstangen",
+    lat: 58.7203,
+    lng: 5.52013,
+    dirMin: 190,
+    dirMax: 230,
+    sports: ["kite", "wing"],
+    desc: "Sørlig vind kan gi bølger og noe flatt vann. Rigging på gress eller sandstrand.",
+    access: "Kjør Nordsjøveien sørover forbi Bore og Orre. Ned ved fotballbanen ved skilt til Pollestad.",
+    bottom: "Sand.",
+    hazards: "Lite parkering og stein gjør spotten best for viderekomne.",
+    current: "Ikke til bekymring i rolige forhold.",
+    optimalWind: "Sør til sør–sørvest.",
+  }),
+
+  makeSpot({
+    name: "Orrestranda",
+    lat: 58.7403,
+    lng: 5.5167,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Lang og grunn Jærstrand. Kan gi gode forhold på vest-nordvest/sør-sørvest.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sand, langgrunt.",
+    hazards: "Kan få store bølger og farlige ripstrømmer.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Vest-nordvest og sør-sørvest.",
+  }),
+
+  makeSpot({
+    name: "Bore sør",
+    lat: 58.7992,
+    lng: 5.5514,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Stor strand med god plass. Bølgeeksponert spot som kan gi gode forhold når vind og swell passer.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sandstrand.",
+    hazards: "Bølgeeksponert. Nybegynnere bør unngå store swelldager.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Sørvest og nordvest.",
+  }),
+
+  makeSpot({
+    name: "Bore nord / Sele",
+    lat: 58.8096,
+    lng: 5.5504,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing"],
+    desc: "Mer håndterlig enn sørenden av Bore, men fortsatt bølgeeksponert. Brukes til freeride og bølger.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sandstrand.",
+    hazards: "Bølger og strøm kan være krevende.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Sørvest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Sele",
+    lat: 58.8134,
+    lng: 5.5481,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing"],
+    desc: "Ren bølgespot med smal strand.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sand med steinpartier.",
+    hazards: "Stein og elveutløp nedvinds. Ikke nybegynnersted.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Sørvest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Byberg",
+    lat: 58.8292,
+    lng: 5.5573,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "En av Jærstrendene der kiting er tillatt når vindretning og verneregler passer.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sandstrand.",
+    hazards: "Bølger, strøm og regelverk må vurderes før økt.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Avhengig av forhold.",
+  }),
+
+  makeSpot({
+    name: "Hellestø",
+    lat: 58.8429,
+    lng: 5.5668,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Bred strand med grunt vann. Kan være en god vannsportspot når du forstår bølger og strøm.",
+    access: "Strandtilkomst. Sjekk parkering og vernegrenser.",
+    bottom: "Sand og grunt vann.",
+    hazards: "Sterke ripstrømmer. Passer best for erfarne i bølger.",
+    restrictions: "Sjekk Jæren-regler og fuglefredning før bruk.",
+    optimalWind: "Vestlige til sørvestlige sektorer.",
+  }),
+
+  makeSpot({
+    name: "Sola strand",
+    lat: 58.8865,
+    lng: 5.6051,
+    dirMin: 180,
+    dirMax: 330,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Grunt og ofte mindre bølger enn mange Jærspots. Godt egnet som mer nybegynnervennlig strand når forholdene er rolige.",
+    access: "God strandtilkomst. Sjekk parkering og soner.",
+    bottom: "Sand og grunt vann.",
+    hazards: "Badebruk, flyplassnærhet og lokale regler må respekteres.",
+    restrictions: "Sjekk lokale regler før bruk.",
+    optimalWind: "Sørvest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Sømmevågen / Hafrsfjord",
+    lat: 58.8950,
+    lng: 5.6810,
+    dirMin: 150,
+    dirMax: 220,
+    sports: ["wing", "windsurf"],
+    desc: "Skjermet flattvannsspot ved sørlig vind. Brukt til wingfoilkurs sammen med Sola strand.",
+    access: "Fjordtilkomst. Sjekk parkering og lokale forhold.",
+    bottom: "Skjermet fjordområde.",
+    hazards: "Sjekk trafikk, grunner og lokale launchforhold.",
+    optimalWind: "Sørlig vind.",
+  }),
+
+  makeSpot({
+    name: "Sandestranden",
+    lat: 59.0193231,
+    lng: 5.5921889,
+    dirMin: 200,
+    dirMax: 280,
+    sports: ["kite", "wing"],
+    desc: "Flattvann i sørvestlig hjørne og bølger ute i bukta. Fin sandstrand og gress for rigg.",
+    access: "Kjør mot Randaberg, forbi sentrum og videre mot kysten. Parkér ved stranden.",
+    bottom: "Tang og sand. Stein ved molo.",
+    hazards: "Molo/stein nedvinds gjør spotten best for viderekomne.",
+    current: "Lite, ikke til bekymring.",
+    optimalWind: "Sørvest til vest.",
+    restrictions: "Sjekk lokale vernegrenser og sesongregler.",
+  }),
+
+  makeSpot({
+    name: "Åkrasanden",
+    lat: 59.2474,
+    lng: 5.1935,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Åpent hav med flatere partier og vind fra mange retninger. Kan brukes året rundt når forholdene passer.",
+    access: "Strandtilkomst. Sjekk parkering.",
+    bottom: "Sandstrand.",
+    hazards: "Åpent hav, bølger og varierende strømforhold.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Sandvesanden / Sandhåland / Mjølhus",
+    lat: 59.1950,
+    lng: 5.1800,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Karmøy-strender med åpent hav og sterke vindforhold. Aktuelle for kite, windsurf og wing.",
+    access: "Strandtilkomst. Sjekk parkering og lokale forhold.",
+    bottom: "Sandstrand.",
+    hazards: "Best for erfarne ved dønning og åpne havforhold.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  // VESTLAND
+  makeSpot({
+    name: "Herdla",
+    lat: 60.572180665471755,
+    lng: 4.9609775765173865,
+    dirMin: 280,
+    dirMax: 170,
+    sports: ["kite", "wing"],
+    desc: "Flatvann på innsiden av Herdla. Skjermet av stor gresslette, men nært fuglereservat.",
+    access: "Bil helt frem. Rigging/launch på liten sand-/steinstrand eller gress.",
+    bottom: "Stein. Spotten brukes på fralandsvind.",
+    hazards: "Litt gusty launch. Fuglefredningsområde: ingen ferdsel med kite/bil på flystripen, og fredet område på nordsiden.",
+    current: "Ingen strøm.",
+    optimalWind: "Nord.",
+  }),
+
+  makeSpot({
+    name: "Herdla utsiden",
+    lat: 60.5630,
+    lng: 4.9550,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "Mer eksponert side av Herdla. Brukes til bølge, freeride og freestyle.",
+    access: "Sjekk lokal tilkomst og parkering.",
+    hazards: "Åpent og mer eksponert enn innsiden. Sjekk fuglereservat og lokale regler.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "The Rock",
+    lat: 60.4370579,
+    lng: 5.0523387,
+    dirMin: 110,
+    dirMax: 200,
+    sports: ["kite", "wing"],
+    desc: "Superflatt vann ved molo på sørøst. Fjell/stein-spot med launch fra liten holme.",
+    access: "Parkér på Ramsøyna og gå ut på moloen for rigg.",
+    hazards: "Trang og farlig steinlaunch. Kun for erfarne.",
+    current: "Kan drive raskt ved problemer. Kom deg inn til sidene tidlig.",
+    optimalWind: "Sørøst mest optimalt. Sør kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Glesvær",
+    lat: 60.20194,
+    lng: 5.04095,
+    dirMin: 120,
+    dirMax: 280,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Lokal Sotra-spot brukt av windsurf-/vannsportmiljø. Kan fungere på flere retninger.",
+    access: "Lokal tilkomst ved Glesvær/Sjøvang. Sjekk parkering.",
+    hazards: "Skjær, stein og lokale vindforhold må vurderes.",
+    optimalWind: "Sørøst til vest. Ved nordlig vind brukes ofte andre spots lenger sør.",
   }),
 
   makeSpot({
@@ -238,31 +692,10 @@ export const spots = [
     dirMin: 0,
     dirMax: 359,
     sports: ["kite", "wing"],
-  }),
-
-  makeSpot({
-    name: "Glesvær",
-    lat: 60.20194,
-    lng: 5.04095,
-    dirMin: 0,
-    dirMax: 359,
-    sports: ["kite", "wing"],
-  }),
-
-  makeSpot({
-    name: "Herdla",
-    lat: 60.572180665471755,
-    lng: 4.9609775765173865,
-    dirMin: 280,
-    dirMax: 170,
-    sports: ["kite", "wing"],
-    desc: "Flatvannspot på innsiden av Herdla. Skjermet av stor gresslette.",
-    access: "Bil helt frem. Rigging/launch på liten sand-/steinstrand eller gress.",
-    bottom: "Stein (fralandsvind – en går ikke på grunn).",
-    hazards:
-      "Litt gusty launch. Fuglefredningsområde: ingen ferdsel med kite/bil på flystripen, og fredet på nordsiden av gressletta.",
-    current: "Ingen strøm.",
-    optimalWind: "Nord.",
+    desc: "Fjordspot med flatt til choppy vann og mindre havswell.",
+    access: "Sjekk lokal launch og parkering.",
+    hazards: "Fjordvind kan være ujevn. Vær obs på landsoner og trafikk.",
+    optimalWind: "Flere vindretninger kan fungere.",
   }),
 
   makeSpot({
@@ -271,7 +704,218 @@ export const spots = [
     lng: 4.893111271854321,
     dirMin: 120,
     dirMax: 270,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Åpen havstrand i Bremanger. Kan gi bølger og kraftig eksponering.",
+    access: "Strandtilkomst. Sjekk parkering og forhold.",
+    bottom: "Sandstrand.",
+    hazards: "Viderekommen ved swell og store bølger.",
+    optimalWind: "Sørøst til vest.",
+  }),
+
+  makeSpot({
+    name: "Vossavangen",
+    lat: 60.618566,
+    lng: 6.415857,
+    dirMin: 225,
+    dirMax: 330,
     sports: ["kite", "wing"],
+    desc: "Flatvannsmagi når vestavind blåser inn elva. Vinden står mot elvas strøm, som kan gi ekstra effekt.",
+    access: "Kort avstand fra parkering på motsatt side av hengebrua. Også gåavstand fra sentrum langs stranda.",
+    bottom: "Sand og noe stein.",
+    hazards: "Sterk strøm i elva. Vær innstilt på svømming ved krasj. Enkelte skarpe steiner.",
+    current: "Forholdsvis sterk strøm i Vosso.",
+    optimalWind: "Nordvest til vest. Sørvest kan også fungere.",
+  }),
+
+  // TRØNDELAG
+  makeSpot({
+    name: "Øysand",
+    lat: 63.3296,
+    lng: 10.2320,
+    dirMin: 240,
+    dirMax: 330,
+    sports: ["kite", "wing"],
+    desc: "Langgrunn sandstrand nær Trondheim. Populær vannspot med stabil vest/nordvest.",
+    access: "Strandtilkomst. Sjekk parkering og folk på stranda.",
+    bottom: "Langgrunn sandstrand.",
+    hazards: "Mer kastete på nord/sørvest. Sjekk lokale forhold.",
+    optimalWind: "Vest til nordvest.",
+  }),
+
+  makeSpot({
+    name: "Vinge/Velvang",
+    lat: 63.473973,
+    lng: 10.805756,
+    dirMin: 150,
+    dirMax: 300,
+    sports: ["kite", "wing"],
+    desc: "Molo gir flatt vann særlig på lavvann. God gresslette for rigg/launch.",
+    access: "Kjør helt fram og parker ved spoten. Ligger rett ut fra Velvang Vestre Camping.",
+    bottom: "Stein.",
+    hazards: "Trangt og steinete. Sønnavind kan være kraftig. Krever trygg launch.",
+    current: "Ikke merkbart.",
+    optimalWind: "Sør–sørøst til vest–nordvest.",
+  }),
+
+  makeSpot({
+    name: "Hellstranda",
+    lat: 63.4500,
+    lng: 10.9200,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "Fjordspot i Stjørdal med choppy vann og lett tilgang.",
+    access: "Enkel tilkomst. Sjekk parkering og lokale forhold.",
+    hazards: "Choppy vann og fjordvind kan variere.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Stokkøya / Hosnasand",
+    lat: 64.0292,
+    lng: 10.0305,
+    dirMin: 200,
+    dirMax: 330,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Fin sandstrand på vestsiden. Kan gi medium bølger.",
+    access: "Strandtilkomst. Sjekk parkering.",
+    bottom: "Sandstrand.",
+    hazards: "Viderekommen nivå ved bølger.",
+    optimalWind: "Sørvest til vest/nordvest.",
+  }),
+
+  makeSpot({
+    name: "Lauvøya",
+    lat: 63.9650,
+    lng: 10.2050,
+    dirMin: 220,
+    dirMax: 330,
+    sports: ["kite", "wing"],
+    desc: "Kyst-/øyspot i Åfjord-området. Eksponert ved vestlige vinder.",
+    access: "Sjekk lokal tilkomst og parkering.",
+    hazards: "Eksponerte kystforhold ved vind fra vest.",
+    optimalWind: "Vestlige vindretninger.",
+  }),
+
+  makeSpot({
+    name: "Rædergården",
+    lat: 63.6880,
+    lng: 9.6600,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "Ørland-spot med flatere forhold i le av Ørland-halvøya.",
+    access: "Sjekk lokal tilkomst og regler.",
+    hazards: "Sjekk lokale soner, fugleliv og ferdsel.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Uthaug / Hovdetåa",
+    lat: 63.7280,
+    lng: 9.6200,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing"],
+    desc: "Åpent og lavt kystlandskap på Ørland. Kan fungere for kite og wing ved riktige forhold.",
+    access: "Sjekk lokal tilkomst, parkering og soner.",
+    hazards: "Sjekk militære og lokale soner før bruk.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  // NORDLAND – HELGELAND
+  makeSpot({
+    name: "Røssåauren",
+    lat: 66.0590,
+    lng: 13.6800,
+    dirMin: 120,
+    dirMax: 330,
+    sports: ["kite", "wing"],
+    desc: "Flatvannspot på Helgeland. Omtalt med sørøst/nordvest og paddeflatt vann.",
+    access: "Sjekk lokal tilkomst og parkering.",
+    bottom: "Strand-/elveområde.",
+    hazards: "Bruk med varsomhet. Området har naturreservat og fugle-/strandengverdier.",
+    restrictions: "Sjekk alltid verneforskrift og hvor aktivitet er lov før økt.",
+    optimalWind: "Sørøst og nordvest.",
+  }),
+
+  makeSpot({
+    name: "Vega / Vallsjø",
+    lat: 65.7000,
+    lng: 11.8500,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Eksponert øyrike med muligheter for wingfoil, windsurf og kiting.",
+    access: "Sjekk lokal tilkomst, fugleliv og værforhold.",
+    hazards: "Eksponert øyrike. Sjekk fugleliv og lokale soner.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Brønnøysund / Torghattenområdet",
+    lat: 65.4749,
+    lng: 12.2129,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Variert område med både fjord- og havforhold rundt Brønnøysund og Torghatten.",
+    access: "Sjekk praktisk launchpunkt, parkering og lokale forhold.",
+    hazards: "Varierende fjord- og havforhold.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Sandnessjøen / Helgelandsbrua",
+    lat: 66.0217,
+    lng: 12.6316,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Helgeland-område med muligheter for wingfoil, windsurf og kiting avhengig av lokalt launchpunkt.",
+    access: "Sjekk launchpunkt, parkering og lokale regler.",
+    hazards: "Fjordvind, strøm og trafikk kan variere lokalt.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Nesna / Nesnaøyene",
+    lat: 66.1982,
+    lng: 13.0184,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Skjermet til moderat fjordforhold rundt Nesna og øyene.",
+    access: "Sjekk lokalt launchpunkt og parkering.",
+    hazards: "Fjordvind og lokale strømforhold kan variere.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Sleneset / Solværøyene",
+    lat: 66.3605,
+    lng: 12.6078,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["kite", "wing", "windsurf"],
+    desc: "Øyrike med mange grunner, strender og muligheter for vannsport med lokalkunnskap.",
+    access: "Krever lokalkunnskap og vurdering av praktisk launch.",
+    hazards: "Mange øyer, grunner og varierende forhold. Bruk lokalkunnskap.",
+    optimalWind: "Flere vindretninger kan fungere.",
+  }),
+
+  makeSpot({
+    name: "Adventure Helgeland / Helgelandskysten",
+    lat: 66.0000,
+    lng: 12.6000,
+    dirMin: 0,
+    dirMax: 359,
+    sports: ["windsurf"],
+    desc: "Region-anker for windsurfing på Helgelandskysten. Ikke ett fast launchpunkt.",
+    access: "Velg konkret strand/launchpunkt lokalt.",
+    hazards: "Region med mange øyer, grunner og varierende vær. Sjekk lokalkunnskap.",
+    notes: "Brukes som region-anker, ikke som presis spot.",
+    optimalWind: "Avhenger av valgt launchpunkt.",
   }),
 
   // ØSTFOLD
@@ -282,17 +926,13 @@ export const spots = [
     dirMin: 160,
     dirMax: 250,
     sports: ["kite", "wing"],
-    desc:
-      "Langgrunn sandbunn i skjermet bukt ved Larkollen. Ofte flatt; ved høyvann/lavtrykk kan bølger slå over naturlig molo.",
-    access:
-      "Kjør mot Larkollen camping, hold venstre før innkjøring. Parkering i enden av veien.",
-    bottom: "Sand med enkelte steiner (spesielt høyt og lavt i bukta).",
-    hazards:
-      "Trang bukt, grunt på lavvann. Kitere ute av kontroll kan forekomme. Anbefales ikke for begynnere.",
+    desc: "Langgrunn sandbunn i skjermet bukt ved Larkollen. Ofte flatt; ved høyvann/lavtrykk kan bølger slå over naturlig molo.",
+    access: "Kjør mot Larkollen camping, hold venstre før innkjøring. Parkering i enden av veien.",
+    bottom: "Sand med enkelte steiner, særlig høyt og lavt i bukta.",
+    hazards: "Trang bukt, grunt på lavvann. Kitere ute av kontroll kan forekomme. Anbefales ikke for begynnere.",
     current: "Ingen strøm.",
-    optimalWind: "Sør og sørvest. Sørvest foretrukket (bukta kan bli trang på sør).",
-    notes:
-      "Ved mye folk: øst-tuppen av Lille-Danmark kan være svært godt flattvannsalternativ.",
+    optimalWind: "Sør og sørvest. Sørvest foretrukket.",
+    notes: "Ved mye folk kan øst-tuppen av Lille-Danmark være et godt flattvannsalternativ.",
   }),
 
   makeSpot({
@@ -302,13 +942,10 @@ export const spots = [
     dirMin: 160,
     dirMax: 250,
     sports: ["kite", "wing"],
-    desc:
-      "Langgrunn bukt med smal åpning mot havet. Dønning dempes inn, og småbølger blir mindre mot land; flatere i sidene.",
-    access:
-      "Sving til høyre ved første vei (ikke blindvei) etter Hvalertunnellen (rv 108).",
+    desc: "Langgrunn bukt med smal åpning mot havet. Dønning dempes inn, og småbølger blir mindre mot land.",
+    access: "Sving til høyre ved første vei etter Hvalertunnellen (rv 108).",
     bottom: "Sand og stein.",
-    hazards:
-      "Ta hensyn til hytteeiere. Parker fornuftig og respekter badebøyer.",
+    hazards: "Ta hensyn til hytteeiere. Parker fornuftig og respekter badebøyer.",
     current: "Ingen strøm.",
     optimalWind: "Sør og sørvest.",
   }),
@@ -321,16 +958,12 @@ export const spots = [
     dirMin: 120,
     dirMax: 240,
     sports: ["kite", "wing"],
-    desc:
-      "Mekka for flatvannskiting i Drammensfjorden. Best på ren sør. Ekstra gode dager ved sterk utoverstrøm som kan gi paddeflatt vann i bukta.",
-    access:
-      "De fleste parkerer på østsiden av ferjeleiet og går ut til tangen for rigg/launch. Rigging/launch på gress ved moloen.",
+    desc: "Flatvannsklassiker i Drammensfjorden. Ekstra bra ved sterk utoverstrøm som kan gi paddeflatt vann.",
+    access: "Parker på østsiden av ferjeleiet og gå ut til tangen for rigg/launch.",
     bottom: "Stein, grus og sand.",
-    hazards:
-      "Ekstrem strøm mellom Verket og Svelvik. Ferskinger bør holde seg på østsiden av moloen. Store båter går inn/ut av fjorden. Kan være grunt på lavvann.",
-    current:
-      "Ekstrem strøm mellom Verket og Svelvik. Ingen strøm inne i bukta.",
-    optimalWind: "Sørvest, sør og sørøst (vind mellom sørøst og sørvest).",
+    hazards: "Ekstrem strøm mellom Verket og Svelvik. Store båter går inn/ut av fjorden. Grunt på lavvann.",
+    current: "Ekstrem strøm mellom Verket og Svelvik. Ingen strøm inne i bukta.",
+    optimalWind: "Sørøst, sør og sørvest.",
   }),
 
   // VESTFOLD
@@ -341,14 +974,12 @@ export const spots = [
     dirMin: 80,
     dirMax: 150,
     sports: ["kite", "wing"],
-    desc:
-      "Sandstrand som ofte blir flattvannseldorado når molo/landtunge skjermer. På sør–sørøst kan det bli flatt bak moloen, og bølger kan rulle inn på langgrunn strand.",
+    desc: "Sandstrand som ofte blir flatt bak molo/landtunge. Kan også gi små bølger på langgrunn strand.",
     access: "Parkering i komfortabel gåavstand til spotten.",
     bottom: "Sand og stein.",
-    hazards:
-      "Ustabil vind om du går ut på feil vindretninger. En del stein på motsatt side av bukta.",
+    hazards: "Ustabil vind på feil retning. Stein på motsatt side av bukta.",
     current: "Ingen strøm.",
-    optimalWind: "Sørøst–øst.",
+    optimalWind: "Sørøst til øst.",
   }),
 
   // TELEMARK
@@ -359,167 +990,12 @@ export const spots = [
     dirMin: 160,
     dirMax: 200,
     sports: ["kite", "wing"],
-    desc:
-      "Skjærgårdsidyll med bølgeskjerming via en tynn tarm. Litt ustabilt helt inne ved stranda, men går greit. Solgangsbris kan akselerere gjennom Jomfrulandsrenna.",
-    access:
-      "Båt/taxibåt. Optimalt: seilbåt, så du kan ligge innenfor moloen.",
+    desc: "Skjærgårdsidyll med bølgeskjerming. Solgangsbris kan akselerere gjennom Jomfrulandsrenna.",
+    access: "Båt eller taxibåt. Seilbåt er optimalt for overnatting innenfor moloen.",
     bottom: "Sand.",
-    hazards:
-      "Temmelig grunt, og en og annen stein kan være fare (finner/kitere).",
+    hazards: "Temmelig grunt, med enkelte steiner.",
     current: "Ingen strøm.",
     optimalWind: "Sør.",
-  }),
-
-  // AGDER
-  makeSpot({
-    name: "Bjellandstranda",
-    lat: 58.45617,
-    lng: 8.88007,
-    dirMin: 200,
-    dirMax: 60,
-    sports: ["kite", "wing"],
-    desc:
-      "Relativt lite plass å rigge. Mulig å finne flattvann med grei vind i mange retninger; ofte best med sør/sørvest.",
-    access:
-      "Bil, deretter et par hundre meter å gå. Ta hensyn til lokalbefolkningen og spør evt. om parkering.",
-    bottom: "Stein og sand.",
-    hazards: "Steiner rett under vannflaten.",
-    current: "Lite strøm.",
-    optimalWind: "Funker fra sørvest til nordøst (best med sør og sørvest).",
-  }),
-
-  makeSpot({
-    name: "Flætten/Borhaug havn",
-    lat: 58.1024277,
-    lng: 6.5849033,
-    dirMin: 260,
-    dirMax: 320,
-    sports: ["kite", "wing"],
-    desc:
-      "Alternativ til storhavsbølger på Lista. Havna slipper inn nordvest og gir forhold som er mer håndterlige (ikke helt paddeflatt, men ofte godt nok).",
-    access: "Kjør og parker helt frem til riggeområdet.",
-    bottom: "Stein og sand.",
-    hazards:
-      "Rimelig ustabil vind ved liten strand ved butikken, og steiner kan være kranglete. Steinmolo og kryssende båttrafikk (men lite båter). Ikke optimal for ferske kitere – krever at du kan holde høyde.",
-    current: "Ingen strøm her inne.",
-    optimalWind: "Vest–nordvest.",
-  }),
-
-  // ROGALAND
-  makeSpot({
-    name: "Sandestranden",
-    lat: 59.0193231,
-    lng: 5.5921889,
-    dirMin: 200,
-    dirMax: 280,
-    sports: ["kite", "wing"],
-    desc:
-      "Fin sandstrand med gress for rigg. Paddeflatt område ved molo, men krever kontroll siden molo/brygge er rett nedvinds ved flattvannsområdet.",
-    access:
-      "Kjør mot Randaberg. Forbi sentrum og Statoil. Følg Bøveien (472) til kysten og ned til stranden. Parkér ved skiltet.",
-    bottom: "Tang og sand (stein ute ved moloen).",
-    hazards:
-      "Murbrygge/molo downwind ved flattvannsområdet – best egnet for øvede.",
-    current: "Lite, ikke til bekymring.",
-    optimalWind: "Sørvest–vest.",
-    restrictions:
-      "Vernet område: ikke lov å holde på fra 31. oktober til 1. april.",
-    notes:
-      "Blåser normalt litt svakere her (lenger nord på Jæren) enn lenger sør.",
-  }),
-
-  makeSpot({
-    name: "Refsnesstranda",
-    lat: 58.695138,
-    lng: 5.548782,
-    dirMin: 190,
-    dirMax: 240,
-    sports: ["kite", "wing"],
-    desc:
-      "Saltebukta ved Raunen. Rev i sørenden skjermer for bølger og gir temmelig flatt vann på rette dager. God plass å rigge på sandstrand.",
-    access:
-      "Kjør Nordsjøveien sørover forbi Bore og Orre. Ta av ved skilt til Refsnes badestrand. Parkér, gå over liten bro og nordover.",
-    bottom: "Sand.",
-    hazards: "Steiner rundt elveutløp midt på stranden.",
-    current: "Ikke til bekymring.",
-    optimalWind: "Sør–sørvest til sørvest. Ren sør kan bli litt ustabil, og for mye vest gir mer bølger inn.",
-  }),
-
-  makeSpot({
-    name: "Krosstangen",
-    lat: 58.7203,
-    lng: 5.52013,
-    dirMin: 190,
-    dirMax: 230,
-    sports: ["kite", "wing"],
-    desc:
-      "Rigging på gress eller sandstrand. Best/flatest på sørlig vind. Mer øst gir mer ustabil vind over land.",
-    access:
-      "Kjør Nordsjøveien sørover forbi Bore og Orre. Ned ved fotballbanen på venstre side ved skiltet til Pollestad. Ligger rett sør for Orre.",
-    bottom: "Sand.",
-    hazards:
-      "Et par steiner under vann ved stranden, helt opp mot revet.",
-    current: "Ikke til bekymring.",
-    optimalWind: "Sør–sørvest.",
-  }),
-
-  // VESTLAND
-  makeSpot({
-    name: "The Rock",
-    lat: 60.4370579,
-    lng: 5.0523387,
-    dirMin: 110,
-    dirMax: 200,
-    sports: ["kite", "wing"],
-    desc:
-      "Fjell/stein-spot med launch fra liten holme midt på molo. Steinmolo mellom Askøy og Ramsøyna gir superflatt vann, ofte uansett vindstyrke. Dypt med en gang.",
-    access:
-      "Vestsiden av Askøy. Parkér på Ramsøyna og gå ut på moloen for rigg.",
-    hazards:
-      "Vanskelig og farlig launch. Svært trangt (maks ca. tre kitere samtidig). Lite rom for feil – launch fra fjell.",
-    current:
-      "Ikke så mye strøm, men du kan drive raskt nedover ved problemer. Kom deg inn til en side raskt, ellers drift ut i Hjeltefjorden.",
-    optimalWind:
-      "Sørøst mest optimalt. Sør kan også fungere. Litt feil retning kan gi veldig kastete vind.",
-  }),
-
-  makeSpot({
-    name: "Vossavangen",
-    lat: 60.618566,
-    lng: 6.415857,
-    dirMin: 225,
-    dirMax: 330,
-    sports: ["kite", "wing"],
-    desc:
-      "Flatvannsmagi når vestavind blåser inn elva: oljeflatt vann og mulig i svak vind. Vinden blåser motsatt av elvas strøm. Rigging/launch på gress; alternativt holde på i vannet.",
-    access:
-      "Kort avstand fra parkering på motsatt side av hengebrua. Også gåavstand fra sentrum langs stranda.",
-    bottom: "Sand og noe stein.",
-    hazards:
-      "Strømmen i elva kan være sterk. Vær innstilt på å måtte svømme ved krasj. Enkelte skarpe steiner på bunn.",
-    current: "Forholdsvis sterk strøm i Vosso.",
-    optimalWind: "Nordvest til vest (til nød også sørvest).",
-  }),
-
-  // TRØNDELAG
-  makeSpot({
-    name: "Vinge/Velvang",
-    lat: 63.473973,
-    lng: 10.805756,
-    dirMin: 150,
-    dirMax: 300,
-    sports: ["kite", "wing"],
-    desc:
-      "Lang molo øst/vest ut til liten halvøy. Veldig bra på lavvann. På høyvann fungerer det dårligere fordi moloen er lav og bølger slår over. God gresslette for rigg/launch.",
-    access:
-      "Kjør helt fram og parker ved spoten. Ligger rett ut fra Velvang Vestre Camping.",
-    bottom: "Stein.",
-    hazards:
-      "Trangt og steinete. På østlig vind kan det være veldig ustabilt på land, men ok på sjøen.",
-    current: "Ikke merkbart.",
-    optimalWind: "Sør–sørøst til vest–nordvest.",
-    notes:
-      "Sønnavind pleier å være kraftig i Trøndelag – når det blåser riktig, blåser det ofte kraftig.",
   }),
 
   // TROMS
@@ -530,10 +1006,8 @@ export const spots = [
     dirMin: 20,
     dirMax: 70,
     sports: ["kite", "wing"],
-    desc:
-      "Stabil solgangsbris (ofte 7–10 m/s) på gode perioder. Lang sandstrand ved elveutløp. Sandbanker demper bølger og gir bassengflattvann. Elveutløp kan gi ekstra effekt.",
-    access:
-      "Følg E8 fra Tromsø sørover, ta av på Rv 91 til fergeleiet. Erfarne kan krysse fra fergeleiet. Andre: ta av på Fv 51 mot Tromsø Golfklubb før fergeleiet, og litt forbi golfklubben.",
+    desc: "Lang sandstrand ved elveutløp. Sandbanker stopper bølger og kan gi bassengflattvann.",
+    access: "Følg E8 fra Tromsø sørover, ta av på Rv 91. For enklere launch: ta av mot Tromsø Golfklubb før fergeleiet.",
     bottom: "Sand.",
     hazards: "Grunt ved fjære sjø.",
     current: "Elveutløp gir naturlig bevegelse/strøm.",
@@ -547,16 +1021,11 @@ export const spots = [
     dirMin: 20,
     dirMax: 70,
     sports: ["kite", "wing"],
-    desc:
-      "Sandnessundet ved Tromsø Lufthavn. Vanlig sjøsetting fra Tromsø Brettseilerklubb på Sjølund. På nordøst (vanlig om sommeren) blåser vinden over flatt landområde (flyplassen) og rett ut av bukta.",
+    desc: "Vanlig sjøsetting fra Tromsø Brettseilerklubb. På nordøst blåser vinden over flatt landområde ved flyplassen og ut av bukta.",
     access: "God parkering. Kort vei fra parkering til stranda. Rigg på gress.",
-    bottom:
-      "Sandbunn på lavvann langt ut fra land hele veien nordover langs land og inn i bukta.",
-    hazards:
-      "Betongrør fra pumpestasjon stikker ut i sjøen (synlig ved ekstremt lavvann ca. 200 m fra land).",
-    current:
-      "Sterk strøm ute/nordover i sundet kan forekomme, men inne i bukta er det veldig lite strøm.",
-    optimalWind:
-      "Nordøst best for flattvann. Ellers fungerer alt mellom sørøst og sørvest. Vest kan gå, men kan være veldig ujevn.",
+    bottom: "Sandbunn langt ut på lavvann nordover langs land og inn i bukta.",
+    hazards: "Betongrør fra pumpestasjon kan være synlig ved ekstremt lavvann.",
+    current: "Sterk strøm kan forekomme ute/nordover i sundet. Lite strøm inne i bukta.",
+    optimalWind: "Nordøst best for flattvann. Sørøst til sørvest fungerer også. Vest kan være ujevn.",
   }),
 ];
