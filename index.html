@@ -576,7 +576,6 @@ input[type="range"]::-moz-range-thumb {
     L.control.zoom({ position: "topright" }).addTo(map);
     
     map.on("zoomend", () => {
-      console.log("Zoom:", map.getZoom());
     });
 
     // Pane-rekkefølge (sikrer at vind/spot alltid ligger over)
@@ -645,7 +644,7 @@ input[type="range"]::-moz-range-thumb {
     const kiteBox = container.querySelector("#sportKite");
     const wingBox = container.querySelector("#sportWing");
     
-    console.log("kiteBox:", kiteBox, "wingBox:", wingBox);
+   // console.log("kiteBox:", kiteBox, "wingBox:", wingBox);
     
     function updateFilter() {
       currentSportFilter.kite = kiteBox.checked;
@@ -710,8 +709,6 @@ function updateOverlayVisibility() {
     }
   }
 }
-
-map.on("zoomend", updateOverlayVisibility);
 
     // Zoom så alle spots vises
     const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
@@ -1223,7 +1220,6 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           ? ` (${Math.round(windGust)})`
           : "";
 
-          console.log("Legger til spot:", spot.name);
           
         // HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
         const circle = L.marker([spot.lat, spot.lng], {
@@ -1414,7 +1410,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
       renderAtIndex(0);
       updateOverlayVisibility();
-      console.log("Antall markører i cluster:", layer.getLayers().length);
+    //  console.log("Antall markører i cluster:", layer.getLayers().length);
 
       statusMsg.textContent = "";
     }
@@ -1484,7 +1480,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
       })();
 
       function openSpotModal(spot) {
-        console.log("Åpner spot-modal:", spot.name, spot.desc);
+ //       console.log("Åpner spot-modal:", spot.name, spot.desc);
 
         const modal = document.getElementById("spotModal");
         const closeBtn = document.getElementById("spotClose");
@@ -1561,9 +1557,19 @@ function collectSpeedsForBin(mapByTime, isoTime) {
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
 
-      map.on("zoomend", () => {
-      renderAtIndex(parseInt(slider.value, 10));
-      });
+let lastShowDetails = map.getZoom() >= DETAIL_ZOOM;
+
+map.on("zoomend", () => {
+  const showDetailsNow = map.getZoom() >= DETAIL_ZOOM;
+
+  // Bare render på nytt når vi krysser grensen for detaljvisning
+  if (showDetailsNow !== lastShowDetails) {
+    lastShowDetails = showDetailsNow;
+    renderAtIndex(parseInt(slider.value, 10));
+  }
+
+  updateOverlayVisibility();
+});
 
     // Start
     loadAll().catch(err => {
