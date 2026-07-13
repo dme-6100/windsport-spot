@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="no">
 <head>
   <meta charset="utf-8" />
@@ -9,6 +8,12 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+    
+  <link rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
   <style>
     html, body { height: 100%; margin: 0; }
@@ -519,9 +524,10 @@ input[type="range"]::-moz-range-thumb {
 
   <!-- Leaflet JS -->
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-20-19";
+      import { spots } from "./spots.js?v=2026-04-20-21";
     
 
       
@@ -531,7 +537,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v20:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v21:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -541,6 +547,7 @@ input[type="range"]::-moz-range-thumb {
 
       // ✅ Visningsfarge for dårlige forhold (erstatter rød)
       const BAD_CONDITION_COLOR = "#b0b0b0"; // lys grå
+      const DETAIL_ZOOM = 10;
 
     // ---------- UI ----------
     const slider = document.getElementById("timeSlider");
@@ -559,6 +566,10 @@ input[type="range"]::-moz-range-thumb {
     }).setView([62.25, 5.6], 9);
 
     L.control.zoom({ position: "topright" }).addTo(map);
+    
+    map.on("zoomend", () => {
+      console.log("Zoom:", map.getZoom());
+    });
 
     // Pane-rekkefølge (sikrer at vind/spot alltid ligger over)
     map.createPane("basePane");
@@ -640,8 +651,40 @@ input[type="range"]::-moz-range-thumb {
 });
 
 new SportFilterControl().addTo(map);
-    // Dine spots/piler/tekst legges i dette laget
-    const layer = L.layerGroup().addTo(map);
+ // Dine spots/piler/tekst legges i disse lagene
+const layer = L.markerClusterGroup({
+  showCoverageOnHover: false,
+  spiderfyOnMaxZoom: true,
+  disableClusteringAtZoom: DETAIL_ZOOM,
+  maxClusterRadius: 70,
+  iconCreateFunction: function (cluster) {
+    return L.divIcon({
+      className: "cluster-count-icon",
+      html: `
+        <div style="
+          width:34px;
+          height:34px;
+          border-radius:50%;
+          background:#d0d0d0;
+          border:2px solid #777;
+          color:#111;
+          font-weight:800;
+          font-size:14px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.25);
+        ">
+          ${cluster.getChildCount()}
+        </div>
+      `,
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
+  }
+}).addTo(map);
+
+const overlayLayer = L.layerGroup().addTo(map);
 
 
     // Zoom så alle spots vises
@@ -1096,125 +1139,134 @@ function collectSpeedsForBin(mapByTime, isoTime) {
     }
 
       function renderAtIndex(idx) {
-        layer.clearLayers();
+  layer.clearLayers();
+  overlayLayer.clearLayers();
 
-        const t = timeline[idx];
-        if (!t) {
-          timeLabel.textContent = "Ingen tidspunkter";
-          return;
-        }
-        timeLabel.textContent = `${formatTime(t)}`;
+  const t = timeline[idx];
+  if (!t) {
+    timeLabel.textContent = "Ingen tidspunkter";
+    return;
+  }
 
-        for (const spot of spots) {
-          if (!matchesSport(spot)) continue;
-          const mapByTime = forecastsBySpot[spot.name];
-          if (!mapByTime) continue;
+  timeLabel.textContent = `${formatTime(t)}`;
 
-          // Prøv først eksakt tid, ellers fallback til nærmeste før
-          let rec = mapByTime.get(t);
-          let usedTime = t;
+  const showDetails = map.getZoom() >= DETAIL_ZOOM;
 
-          if (!rec) {
-            const nearest = getNearestAtOrBefore(mapByTime, t);
-            if (!nearest) continue;
-            rec = nearest.value;
-            usedTime = nearest.time;
-          }
+  for (const spot of spots) {
+    if (!matchesSport(spot)) continue;
 
-          const tempC = rec.temperature;
-          
-          const windFromDir = rec.windFromDir;
-          const windSpeed   = rec.windSpeed;
-          //const yrLike = binWindValue(mapByTime, usedTime, "max"); // eller "avg"
-          //const displayWind = (yrLike !== null) ? yrLike : windSpeed;
-          const displayWind = windSpeed; // ekte timeverdi fra Open-Meteo
-          const windGust    = rec.windGust;
-          const symbolCode  = rec.symbolCode;
-          const windTo      = (windFromDir + 180) % 360;
+    const mapByTime = forecastsBySpot[spot.name];
+    if (!mapByTime) continue;
 
-          // Normal status (rød/gul/grønn/svart)
-          let status = getStatus(windFromDir, displayWind, spot);
+    let rec = mapByTime.get(t);
+    let usedTime = t;
 
-          // ✅ Solgangsbris: sol + vind fra vest→nord (uansett styrke)
-          const seaBreezeOk = seaBreezeOverrideOk(spot, windFromDir, symbolCode, usedTime);
-          if (seaBreezeOk) {
-            status = { color: "green", label: "Solgangsbris" };
-          }
- 
-          // ✅ Visuell farge: bytt "red" til lys grå
-          const drawColor = (status.color === "red") ? BAD_CONDITION_COLOR : status.color;
- 
-          // Vindkast i parentes
-          const gustTxt = Number.isFinite(windGust) ? ` (${Math.round(windGust)})` : "";
+    if (!rec) {
+      const nearest = getNearestAtOrBefore(mapByTime, t);
+      if (!nearest) continue;
+      rec = nearest.value;
+      usedTime = nearest.time;
+    }
 
-          // Alarm kun når solgangsbris er aktiv og spot har alarmText
-          const alarmLine =
-            (seaBreezeOk && spot.alarmText)
-              ? `<div style="color:#277556;font-weight:900;">${spot.alarmText}</div>`
-              : "";
+    const tempC = rec.temperature;
+    const windFromDir = rec.windFromDir;
+    const windSpeed = rec.windSpeed;
+    const displayWind = windSpeed;
+    const windGust = rec.windGust;
+    const symbolCode = rec.symbolCode;
+    const windTo = (windFromDir + 180) % 360;
 
-          // Sirkel
-          const circle = L.circleMarker([spot.lat, spot.lng], {
-            pane: "windPane",
-            color: drawColor,
-            radius: 10,
-            weight: 3,
-            fillOpacity: 0.20
-          }).addTo(layer);
+    let status = getStatus(windFromDir, displayWind, spot);
 
-            circle.on("click", (e) => {
-              L.DomEvent.stop(e);   // hindrer at Leaflet sin popup tar over klikket
-              openSpotModal(spot);  // åpner din spot-modal
-            });
-          
+    const seaBreezeOk = seaBreezeOverrideOk(
+      spot,
+      windFromDir,
+      symbolCode,
+      usedTime
+    );
 
-          // Spot-navn
-          L.marker([spot.lat, spot.lng], {
-            pane: "windPane",
-            icon: spotNameIcon(spot.name),
-            interactive: false,
-            zIndexOffset: 1300
-          }).addTo(layer);
+    if (seaBreezeOk) {
+      status = { color: "green", label: "Solgangsbris" };
+    }
 
-          // Vær-emoji
-         const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
+    const drawColor =
+      status.color === "red" ? BAD_CONDITION_COLOR : status.color;
 
-          // ✅ Alarmtekst til venstre for værsymbolet når solgangsbris trigges
-          if (seaBreezeOk && spot.alarmText) {
-            L.marker([spot.lat, spot.lng], {
-              pane: "windPane",
-              icon: alarmIcon(spot.alarmText),
-              interactive: false,
-              zIndexOffset: 1185
-            }).addTo(layer);
-          }
+    const gustTxt = Number.isFinite(windGust)
+      ? ` (${Math.round(windGust)})`
+      : "";
 
-          // Værikon
-          L.marker([spot.lat, spot.lng], {
-            pane: "windPane",
-            icon: weatherIcon(emoji),
-            interactive: false,
-            zIndexOffset: 1190
-          }).addTo(layer);
+    // HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
+    const circle = L.marker([spot.lat, spot.lng], {
+      icon: L.divIcon({
+        className: "spot-main-marker",
+        html: `
+          <div style="
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            border:3px solid ${drawColor};
+            background:rgba(255,255,255,0.25);
+          "></div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      }),
+    }).addTo(layer);
 
-          // Vindpil (samme farge som status – blir grønn ved solgangsbris)
-          L.marker([spot.lat, spot.lng], {
-            pane: "windPane",
-            icon: windArrowIcon(windTo, drawColor),
-            interactive: false,
-            zIndexOffset: 1200
-          }).addTo(layer);
+    circle.on("click", (e) => {
+      L.DomEvent.stop(e);
+      openSpotModal(spot);
+    });
 
-          // Vindtekst
-          L.marker([spot.lat, spot.lng], {
-            pane: "windPane",
-            icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
-            interactive: false,
-            zIndexOffset: 1250
-          }).addTo(layer);
-        }
-      }
+    // Når vi er zoomet ut, skal kun cluster/spot-sirklene vises
+    if (!showDetails) continue;
 
+    // Spot-navn
+    L.marker([spot.lat, spot.lng], {
+      pane: "windPane",
+      icon: spotNameIcon(spot.name),
+      interactive: false,
+      zIndexOffset: 1300,
+    }).addTo(overlayLayer);
+
+    const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
+
+    // Alarmtekst
+    if (seaBreezeOk && spot.alarmText) {
+      L.marker([spot.lat, spot.lng], {
+        pane: "windPane",
+        icon: alarmIcon(spot.alarmText),
+        interactive: false,
+        zIndexOffset: 1185,
+      }).addTo(overlayLayer);
+    }
+
+    // Værikon
+    L.marker([spot.lat, spot.lng], {
+      pane: "windPane",
+      icon: weatherIcon(emoji),
+      interactive: false,
+      zIndexOffset: 1190,
+    }).addTo(overlayLayer);
+
+    // Vindpil
+    L.marker([spot.lat, spot.lng], {
+      pane: "windPane",
+      icon: windArrowIcon(windTo, drawColor),
+      interactive: false,
+      zIndexOffset: 1200,
+    }).addTo(overlayLayer);
+
+    // Vindtekst
+    L.marker([spot.lat, spot.lng], {
+      pane: "windPane",
+      icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
+      interactive: false,
+      zIndexOffset: 1250,
+    }).addTo(overlayLayer);
+  }
+}
 
       async function mapWithConcurrency(items, limit, mapper) {
         const results = new Array(items.length);
@@ -1242,6 +1294,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
       statusMsg.textContent = "Laster...";
       timeLabel.textContent = "Henter varsler...";
       layer.clearLayers();
+      overlayLayer.clearLayers();
 
       
       const CONCURRENCY = 3; // prøv 3, hvis du får 429 igjen: sett til 2
@@ -1466,7 +1519,10 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
-   
+    map.on("zoomend", () => {
+      renderAtIndex(parseInt(slider.value, 10));
+      });
+
     // Start
     loadAll().catch(err => {
       console.error(err);
