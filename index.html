@@ -443,13 +443,6 @@ input[type="range"]::-moz-range-thumb {
 
     <!-- Top-left menu button -->
     <div id="appMenu" class="app-menu">
-      <button id="menuBtn" class="menu-btn" aria-label="Meny" title="Meny">☰</button>
-
-      <div id="menuDropdown" class="menu-dropdown hidden">
-        <button id="infoBtn" class="menu-item">Info</button>
-      </div>
-    </div>
-
       <!-- Info modal -->
 <div id="infoModal" class="modal hidden" aria-hidden="true">
   <div class="modal-backdrop" data-close="1"></div>
@@ -459,12 +452,66 @@ input[type="range"]::-moz-range-thumb {
     <h2 id="infoTitle">Info</h2>
 
     <div class="modal-content" id="infoContent">
-      ...
-    </div>
+  <p><strong>Om appen</strong><br>
+  Denne appen viser <strong>time-for-time vind- og værvarsel</strong> for utvalgte lokale spots. Informasjonen presenteres på kart og tidslinje for rask vurdering av når forholdene er gode.</p>
+
+  <p><strong>Fargekoder og vindstyrke</strong><br>
+  Hvert spot vurderes ut fra både <strong>vindstyrke og vindretning</strong>. Vindstyrken deles inn i følgende nivåer:</p>
+
+  <ul>
+    <li><strong>Grå</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller feil vindretning</li>
+    <li><strong>Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
+    <li><strong>Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> og riktig vindretning</li>
+    <li><strong>Svart</strong> – Over maks: vind <strong>over 19 m/s</strong></li>
+  </ul>
+
+  <p>Fargen vises ut fra om <strong>vindretningen er innenfor spotets tillatte sektor</strong>, og om vindstyrken ligger innenfor definerte grenser.</p>
+
+  <p><strong>Vindretning</strong><br>
+  Vindretningen vises som vind <strong>fra</strong> en retning, mens pilen viser hvilken vei vinden blåser <strong>til</strong>. Hvert spot har egen sektor for hvilke vindretninger som fungerer.</p>
+
+  <p><strong>Vindstyrke og vindkast</strong><br>
+  Tallet ved spotten viser varslet vindstyrke i m/s. Dersom vindkast er tilgjengelig, vises dette i parentes.</p>
+
+  <p><strong>Utrøna-alarm / solgangsbris</strong><br>
+  Noen spots har egen lokal brislogikk. For eksempel kan Utrøna-alarm vises når solforhold, tidspunkt og vindretning tilsier lokal solgangsbris.</p>
+
+  <ul>
+    <li>Aktiveres kun på spots som er satt opp med <strong>seaBreeze</strong></li>
+    <li>Gjelder typisk på dagtid</li>
+    <li>Vises som grønn alarmtekst i kartet når aktiv</li>
+  </ul>
+
+  <p><strong>Spot-info</strong><br>
+  Klikk på en spot for å åpne mer informasjon. Der kan det vises beskrivelse, tilkomst, bunnforhold, farer, strømforhold, optimale vindretninger, restriksjoner og bilder.</p>
+
+  <p><strong>Sport-filter</strong><br>
+  Ved kartvelgeren kan du velge om kartet skal vise spots for <strong>kite</strong>, <strong>wingfoil</strong>, eller begge. Hvis begge er huket av, vises alle spots som passer minst én av aktivitetene.</p>
+
+  <p><strong>Kart og tidslinje</strong><br>
+  Du kan velge mellom <strong>landkart</strong> og <strong>detaljert sjøkart</strong>. Tidslinjen nederst lar deg bla time for time framover i varselet.</p>
+
+  <p><strong>Cluster / utzooming</strong><br>
+  Når kartet er zoomet ut, samles spotter i grupper. Tallet i sirkelen viser hvor mange spotter som ligger innenfor området. Når du zoomer inn, deles gruppene opp og enkeltspottene vises.</p>
+
+  <p><strong>Bruk og oppdatering</strong><br>
+  Appen kan brukes direkte i nettleseren eller legges til som snarvei på mobil. Ved større oppdateringer kan det være nødvendig å laste siden på nytt eller tømme cache for å se siste versjon.</p>
+
+  <p><strong>Ansvarsfraskrivelse</strong><br>
+  Denne applikasjonen er et veiledende verktøy for visning av vind- og værinformasjon basert på offentlige og tredjeparts datakilder. Informasjonen kan inneholde feil, forsinkelser eller lokale avvik, og det gis ingen garanti for fullstendighet eller nøyaktighet.</p>
+
+  <p>Bruk av appen skjer på eget ansvar. Appen er ikke beregnet for navigasjon til sjøs, sikkerhetskritiske beslutninger eller operativ bruk innen maritime, yrkesmessige eller risikoutsatte aktiviteter. Den erstatter ikke offisielle varsler, nautiske sjøkart, værmeldingstjenester eller eget skjønn.</p>
+
+  <p>Utvikler og bidragsytere kan ikke holdes ansvarlige for skader, tap eller ulemper som måtte oppstå som følge av bruk eller tillit til informasjonen som vises i appen.</p>
+
+  <p><strong>Kommentarer og feilrettinger</strong><br>
+  Eventuelle kommentarer eller feilrettinger kan sendes til: dmeriksen@hotmail.com</p>
+</div>
+
   </div>
 </div>
 
-<!-- Spot info modal (skal ligge her, ikke inni infoModal) -->
+<!-- Spot info modal -->
 <div id="spotModal" class="modal hidden" aria-hidden="true">
   <div class="modal-backdrop" data-close="1"></div>
 
@@ -475,49 +522,10 @@ input[type="range"]::-moz-range-thumb {
   </div>
 </div>
 
+      <button id="menuBtn" class="menu-btn" aria-label="Meny" title="Meny">☰</button>
 
-      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
-        <button class="modal-close" id="infoClose" aria-label="Lukk">✕</button>
-        <h2 id="infoTitle">Info</h2>
-
-        <div class="modal-content" id="infoContent">
-          <p><strong>Om appen</strong><br>
-          Denne appen viser <strong>time‑for‑time vind‑ og værvarsel</strong> for utvalgte lokale spots. Informasjonen presenteres på kart og tidslinje for rask vurdering av når forholdene er gode.</p>
-
-          <p><strong>Fargekoder og vindstyrke</strong><br>
-          Hvert spot vurderes ut fra både <strong>vindstyrke og vindretning</strong>. Vindstyrken deles inn i følgende nivåer:</p>
-
-          <ul>
-            <li><strong>  Grå</strong> – Uegnet: vind <strong>under 6 m/s</strong> eller <strong>over 19 m/s</strong></li>
-            <li><strong>  Gul</strong> – Brukbart: vind <strong>6–7 m/s</strong> eller <strong>12–19 m/s</strong></li>
-            <li><strong>  Grønn</strong> – Gode forhold: vind <strong>7–12 m/s</strong> (optimalt område)</li>
-          </ul>
-
-          <p>Fargen vises kun når <strong>vindretningen også er innenfor spotets tillatte sektor</strong>.</p>
-
-          <p><strong>Utrøna‑alarm (solgangsbris)</strong><br>
-          Utrøna har en egen <strong>solgangsbris‑alarm</strong>:
-          <ul>
-            <li>Aktiveres når <strong>solforhold og vindretning</strong> tilsier lokal bris</li>
-            <li>Gjelder kun på <strong>dagtid (ca. kl. 12–20)</strong></li>
-            <li>Vises som <strong>grønn alarmtekst</strong> i kartet når aktiv</li>
-          </ul>
-          Alarmen er ment som et supplement til vanlig vindvarsling.</p>
-
-          <p><strong>Kart og tidslinje</strong><br>
-          Du kan velge mellom <strong>landkart og detaljert sjøkart</strong>. Vindpiler, spot‑markører og alarmer vises alltid over kartet.
-          
-          <p><strong>Bruk og oppdatering</strong><br>
-          Appen kan brukes direkte i nettleseren eller legges til som <strong>app‑snarvei</strong> på mobil. Ved større oppdateringer kan det være nødvendig å laste appen på nytt for å se siste versjon.</p>
-        
-          <p><strong>Ansvarsfraskrivelse</strong><br>
-          Denne applikasjonen er et veiledende verktøy for visning av vind‑ og værinformasjon basert på offentlige og tredjeparts datakilder. Informasjonen kan inneholde feil, forsinkelser eller lokale avvik, og det gis ingen garanti for fullstendighet eller nøyaktighet.
-          Bruk av appen skjer på eget ansvar. Appen er ikke beregnet for navigasjon til sjøs, sikkerhetskritiske beslutninger eller operativ bruk innen maritime, yrkesmessige eller risikoutsatte aktiviteter. Den erstatter ikke offisielle varsler, nautiske sjøkart, værmeldingstjenester eller eget skjønn.
-          Utvikler og bidragsytere kan ikke holdes ansvarlige for skader, tap eller ulemper som måtte oppstå som følge av bruk eller tillit til informasjonen som vises i appen.
-
-          Eventuelle kommentarer eller feilrettinger kan sendes til dmeriksen@hotmail.com
-          
-        </div>
+      <div id="menuDropdown" class="menu-dropdown hidden">
+        <button id="infoBtn" class="menu-item">Info</button>
       </div>
     </div>
 
@@ -527,7 +535,7 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-20-22";
+      import { spots } from "./spots.js?v=2026-04-20-21";
     
 
       
@@ -537,7 +545,7 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v22:"; // Forandre, oppdatere, Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v21:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
 
       // ---------- Konfig ----------
@@ -636,7 +644,9 @@ input[type="range"]::-moz-range-thumb {
 
     const kiteBox = container.querySelector("#sportKite");
     const wingBox = container.querySelector("#sportWing");
-
+    
+    console.log("kiteBox:", kiteBox, "wingBox:", wingBox);
+    
     function updateFilter() {
       currentSportFilter.kite = kiteBox.checked;
       currentSportFilter.wing = wingBox.checked;
@@ -684,8 +694,24 @@ const layer = L.markerClusterGroup({
   }
 }).addTo(map);
 
+
 const overlayLayer = L.layerGroup().addTo(map);
 
+function updateOverlayVisibility() {
+  const zoom = map.getZoom();
+
+  if (zoom >= 10) {
+    if (!map.hasLayer(overlayLayer)) {
+      map.addLayer(overlayLayer);
+    }
+  } else {
+    if (map.hasLayer(overlayLayer)) {
+      map.removeLayer(overlayLayer);
+    }
+  }
+}
+
+map.on("zoomend", updateOverlayVisibility);
 
     // Zoom så alle spots vises
     const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
@@ -1138,135 +1164,141 @@ function collectSpeedsForBin(mapByTime, isoTime) {
       return Math.max(...arr); // "max"
     }
 
-      function renderAtIndex(idx) {
-  layer.clearLayers();
-  overlayLayer.clearLayers();
+    
+    function renderAtIndex(idx) {
+      layer.clearLayers();
+      overlayLayer.clearLayers();
 
-  const t = timeline[idx];
-  if (!t) {
-    timeLabel.textContent = "Ingen tidspunkter";
-    return;
-  }
+      const t = timeline[idx];
+      if (!t) {
+        timeLabel.textContent = "Ingen tidspunkter";
+        return;
+      }
 
-  timeLabel.textContent = `${formatTime(t)}`;
+      timeLabel.textContent = `${formatTime(t)}`;
 
-  const showDetails = map.getZoom() >= DETAIL_ZOOM;
+      const showDetails = map.getZoom() >= DETAIL_ZOOM;
 
-  for (const spot of spots) {
-    if (!matchesSport(spot)) continue;
+      for (const spot of spots) {
+        if (!matchesSport(spot)) continue;
 
-    const mapByTime = forecastsBySpot[spot.name];
-    if (!mapByTime) continue;
+        const mapByTime = forecastsBySpot[spot.name];
+        if (!mapByTime) continue;
 
-    let rec = mapByTime.get(t);
-    let usedTime = t;
+        let rec = mapByTime.get(t);
+        let usedTime = t;
 
-    if (!rec) {
-      const nearest = getNearestAtOrBefore(mapByTime, t);
-      if (!nearest) continue;
-      rec = nearest.value;
-      usedTime = nearest.time;
+        if (!rec) {
+          const nearest = getNearestAtOrBefore(mapByTime, t);
+          if (!nearest) continue;
+          rec = nearest.value;
+          usedTime = nearest.time;
+        }
+
+        const tempC = rec.temperature;
+        const windFromDir = rec.windFromDir;
+        const windSpeed = rec.windSpeed;
+        const displayWind = windSpeed;
+        const windGust = rec.windGust;
+        const symbolCode = rec.symbolCode;
+        const windTo = (windFromDir + 180) % 360;
+
+        let status = getStatus(windFromDir, displayWind, spot);
+
+        const seaBreezeOk = seaBreezeOverrideOk(
+          spot,
+          windFromDir,
+          symbolCode,
+          usedTime
+        );
+
+        if (seaBreezeOk) {
+          status = { color: "green", label: "Solgangsbris" };
+        }
+
+        const drawColor =
+          status.color === "red" ? BAD_CONDITION_COLOR : status.color;
+
+        const gustTxt = Number.isFinite(windGust)
+          ? ` (${Math.round(windGust)})`
+          : "";
+
+          console.log("Legger til spot:", spot.name);
+          
+        // HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
+        const circle = L.marker([spot.lat, spot.lng], {
+          icon: L.divIcon({
+            className: "spot-main-marker",
+            html: `
+              <div style="
+                width:20px;
+                height:20px;
+                border-radius:50%;
+                border:3px solid ${drawColor};
+                background:rgba(255,255,255,0.25);
+              "></div>
+            `,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+          }),
+        }).addTo(layer);
+
+        circle.on("click", (e) => {
+          L.DomEvent.stop(e);
+          openSpotModal(spot);
+        });
+
+        // Når vi er zoomet ut, skal kun cluster/spot-sirklene vises
+        if (!showDetails) continue;
+
+        // Spot-navn
+        L.marker([spot.lat, spot.lng], {
+          pane: "windPane",
+          icon: spotNameIcon(spot.name),
+          interactive: false,
+          zIndexOffset: 1300,
+        }).addTo(overlayLayer);
+
+        const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
+
+        // Alarmtekst
+        if (seaBreezeOk && spot.alarmText) {
+          L.marker([spot.lat, spot.lng], {
+            pane: "windPane",
+            icon: alarmIcon(spot.alarmText),
+            interactive: false,
+            zIndexOffset: 1185,
+          }).addTo(overlayLayer);
+        }
+
+        // Værikon
+        L.marker([spot.lat, spot.lng], {
+          pane: "windPane",
+          icon: weatherIcon(emoji),
+          interactive: false,
+          zIndexOffset: 1190,
+        }).addTo(overlayLayer);
+
+        // Vindpil
+        L.marker([spot.lat, spot.lng], {
+          pane: "windPane",
+          icon: windArrowIcon(windTo, drawColor),
+          interactive: false,
+          zIndexOffset: 1200,
+        }).addTo(overlayLayer);
+
+        // Vindtekst
+        L.marker([spot.lat, spot.lng], {
+          pane: "windPane",
+          icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
+          interactive: false,
+          zIndexOffset: 1250,
+        }).addTo(overlayLayer);
+      }
     }
 
-    const tempC = rec.temperature;
-    const windFromDir = rec.windFromDir;
-    const windSpeed = rec.windSpeed;
-    const displayWind = windSpeed;
-    const windGust = rec.windGust;
-    const symbolCode = rec.symbolCode;
-    const windTo = (windFromDir + 180) % 360;
 
-    let status = getStatus(windFromDir, displayWind, spot);
 
-    const seaBreezeOk = seaBreezeOverrideOk(
-      spot,
-      windFromDir,
-      symbolCode,
-      usedTime
-    );
-
-    if (seaBreezeOk) {
-      status = { color: "green", label: "Solgangsbris" };
-    }
-
-    const drawColor =
-      status.color === "red" ? BAD_CONDITION_COLOR : status.color;
-
-    const gustTxt = Number.isFinite(windGust)
-      ? ` (${Math.round(windGust)})`
-      : "";
-
-    // HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
-    const circle = L.marker([spot.lat, spot.lng], {
-      icon: L.divIcon({
-        className: "spot-main-marker",
-        html: `
-          <div style="
-            width:20px;
-            height:20px;
-            border-radius:50%;
-            border:3px solid ${drawColor};
-            background:rgba(255,255,255,0.25);
-          "></div>
-        `,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-      }),
-    }).addTo(layer);
-
-    circle.on("click", (e) => {
-      L.DomEvent.stop(e);
-      openSpotModal(spot);
-    });
-
-    // Når vi er zoomet ut, skal kun cluster/spot-sirklene vises
-    if (!showDetails) continue;
-
-    // Spot-navn
-    L.marker([spot.lat, spot.lng], {
-      pane: "windPane",
-      icon: spotNameIcon(spot.name),
-      interactive: false,
-      zIndexOffset: 1300,
-    }).addTo(overlayLayer);
-
-    const emoji = symbolToEmoji(symbolCode, tempC, usedTime);
-
-    // Alarmtekst
-    if (seaBreezeOk && spot.alarmText) {
-      L.marker([spot.lat, spot.lng], {
-        pane: "windPane",
-        icon: alarmIcon(spot.alarmText),
-        interactive: false,
-        zIndexOffset: 1185,
-      }).addTo(overlayLayer);
-    }
-
-    // Værikon
-    L.marker([spot.lat, spot.lng], {
-      pane: "windPane",
-      icon: weatherIcon(emoji),
-      interactive: false,
-      zIndexOffset: 1190,
-    }).addTo(overlayLayer);
-
-    // Vindpil
-    L.marker([spot.lat, spot.lng], {
-      pane: "windPane",
-      icon: windArrowIcon(windTo, drawColor),
-      interactive: false,
-      zIndexOffset: 1200,
-    }).addTo(overlayLayer);
-
-    // Vindtekst
-    L.marker([spot.lat, spot.lng], {
-      pane: "windPane",
-      icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
-      interactive: false,
-      zIndexOffset: 1250,
-    }).addTo(overlayLayer);
-  }
-}
 
       async function mapWithConcurrency(items, limit, mapper) {
         const results = new Array(items.length);
@@ -1381,6 +1413,8 @@ function collectSpeedsForBin(mapByTime, isoTime) {
       buildDaySeparators(timeline);
 
       renderAtIndex(0);
+      updateOverlayVisibility();
+      console.log("Antall markører i cluster:", layer.getLayers().length);
 
       statusMsg.textContent = "";
     }
@@ -1412,10 +1446,13 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           modal.setAttribute("aria-hidden", "false");
         }
         function closeModal() {
-          modal.classList.add("hidden");
-          modal.setAttribute("aria-hidden", "true");
+        if (document.activeElement) {
+          document.activeElement.blur();
         }
 
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+      }
         // Åpne/lukke meny
         menuBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -1497,13 +1534,17 @@ function collectSpeedsForBin(mapByTime, isoTime) {
           ${imgs}
         `;
 
-        function close() {
-          modal.classList.add("hidden");
-          modal.setAttribute("aria-hidden", "true");
-          closeBtn.removeEventListener("click", close);
-          backdrop.removeEventListener("click", close);
-          document.removeEventListener("keydown", esc);
+      function close() {
+        if (document.activeElement) {
+          document.activeElement.blur();
         }
+
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+        closeBtn.removeEventListener("click", close);
+        backdrop.removeEventListener("click", close);
+        document.removeEventListener("keydown", esc);
+      }
 
         function esc(e) {
           if (e.key === "Escape") close();
@@ -1519,7 +1560,8 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
-    map.on("zoomend", () => {
+
+      map.on("zoomend", () => {
       renderAtIndex(parseInt(slider.value, 10));
       });
 
