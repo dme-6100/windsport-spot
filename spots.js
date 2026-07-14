@@ -78,7 +78,7 @@ export const spots = [
     lng: 5.637361457002523,
     dirMin: 0,
     dirMax: 100,
-    sports: ["kite", "wing"],
+    sports: ["wing"],
     desc: "Lokal spot for wingfoil og kiting. Best for korte økter når retningen treffer.",
     access: "Lokal tilkomst. Sjekk parkering og riggområde.",
     hazards: "Krever lokalkunnskap ved grunner, stein og trafikk i området.",
