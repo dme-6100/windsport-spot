@@ -555,7 +555,9 @@ input[type="range"]::-moz-range-thumb {
 
       // ✅ Visningsfarge for dårlige forhold (erstatter rød)
       const BAD_CONDITION_COLOR = "#b0b0b0"; // lys grå
+      const CLUSTER_ZOOM = 9;
       const DETAIL_ZOOM = 9;
+
 
     // ---------- UI ----------
     const slider = document.getElementById("timeSlider");
@@ -664,7 +666,7 @@ new SportFilterControl().addTo(map);
 const layer = L.markerClusterGroup({
   showCoverageOnHover: false,
   spiderfyOnMaxZoom: true,
-  disableClusteringAtZoom: DETAIL_ZOOM,
+  disableClusteringAtZoom: CLUSTER_ZOOM,
   maxClusterRadius: 70,
   iconCreateFunction: function (cluster) {
     return L.divIcon({
@@ -699,7 +701,7 @@ const overlayLayer = L.layerGroup().addTo(map);
 function updateOverlayVisibility() {
   const zoom = map.getZoom();
 
-  if (zoom >= 10) {
+  if (zoom >= CLUSTER_ZOOM) {
     if (!map.hasLayer(overlayLayer)) {
       map.addLayer(overlayLayer);
     }
@@ -1174,7 +1176,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
       timeLabel.textContent = `${formatTime(t)}`;
 
-      const showDetails = map.getZoom() >= DETAIL_ZOOM;
+      const showDetails = map.getZoom() >= CLUSTER_ZOOM;
 
       for (const spot of spots) {
         if (!matchesSport(spot)) continue;
@@ -1557,10 +1559,10 @@ function collectSpeedsForBin(mapByTime, isoTime) {
     // Events
     slider.addEventListener("input", () => renderAtIndex(parseInt(slider.value, 10)));
 
-let lastShowDetails = map.getZoom() >= DETAIL_ZOOM;
+let lastShowDetails = map.getZoom() >= CLUSTER_ZOOM;
 
 map.on("zoomend", () => {
-  const showDetailsNow = map.getZoom() >= DETAIL_ZOOM;
+  const showDetailsNow = map.getZoom() >= CLUSTER_ZOOM;
 
   // Bare render på nytt når vi krysser grensen for detaljvisning
   if (showDetailsNow !== lastShowDetails) {
