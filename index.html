@@ -295,16 +295,15 @@
 
 .day-track {
   position: relative;
-  width: 100%;   /* viktig: samme bredde som slideren */
+  width: 100%;
   height: 22px;
-  margin-top: 6px;
-  margin-bottom: 2px;
+  margin-top: -50px;
+  margin-bottom: 32px;
 }
-
 
 .day-tick {
   position: absolute;
-  top: 0;
+  top: 18px;
   width: 3px;
   height: 10px;
   background: rgba(0,0,0,0.35);
@@ -312,7 +311,7 @@
 
 .day-label {
   position: absolute;
-  top: 15px;
+  top: 0;
   transform: translateX(-50%);
   font-size: 14px;
   color: rgba(0,0,0,0.65);
@@ -354,22 +353,45 @@
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 8px;               /* selve linjen */
-  border-radius: 4px;
-  background: #ccc;
+
+  height: 40px;        /* viktig */
+  background: transparent;
+  cursor: pointer;
 }
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #888;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #888;
+}
+
+
+#timeSlider {
+  touch-action: pan-x;
+}
+
 
 /* iOS / Safari / Chrome */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 26px;               /* ← størrelse på sirkelen */
-  height: 26px;
+
+  width: 30px;
+  height: 30px;
+
+  margin-top: -11px;
+
   border-radius: 50%;
   background: #333;
   border: 2px solid white;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  cursor: pointer;
+
+  cursor: grab;
 }
 
 /* Firefox */
@@ -1383,7 +1405,11 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
   while (d.getTime() <= endMs) {
     const idx = findIndexForTimeMs(d.getTime());
-    const leftPct = (idx / maxIndex) * 100;
+      let leftPct = (idx / maxIndex) * 100;
+
+    if (isFirst) {
+      leftPct += 2;
+    }
 
     const tick = document.createElement("div");
     tick.className = "day-tick" + (isFirst ? " first" : "");
