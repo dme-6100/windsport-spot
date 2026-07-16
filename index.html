@@ -1403,6 +1403,9 @@ function collectSpeedsForBin(mapByTime, isoTime) {
   let d = firstMidnight;
   let isFirst = true;
 
+let prevLeftPct = 0;
+let bandIndex = 0;
+
   while (d.getTime() <= endMs) {
     const idx = findIndexForTimeMs(d.getTime());
       let leftPct = (idx / maxIndex) * 100;
@@ -1410,6 +1413,24 @@ function collectSpeedsForBin(mapByTime, isoTime) {
     if (isFirst) {
       leftPct += 2;
     }
+
+    const band = document.createElement("div");
+      band.style.position = "absolute";
+      band.style.left = prevLeftPct + "%";
+      band.style.width = (leftPct - prevLeftPct) + "%";
+      band.style.top = "0";
+      band.style.bottom = "0";
+      band.style.zIndex = "-1";
+
+      band.style.background =
+        bandIndex % 2 === 0
+          ? "rgba(0,0,0,0.04)"
+          : "rgba(0,0,0,0.10)";
+
+      dayTrack.appendChild(band);
+
+      prevLeftPct = leftPct;
+      bandIndex++;
 
     const tick = document.createElement("div");
     tick.className = "day-tick" + (isFirst ? " first" : "");
@@ -1427,6 +1448,20 @@ function collectSpeedsForBin(mapByTime, isoTime) {
     d.setDate(d.getDate() + 1);
     isFirst = false;
   }
+  const lastBand = document.createElement("div");
+    lastBand.style.position = "absolute";
+    lastBand.style.left = prevLeftPct + "%";
+    lastBand.style.width = (100 - prevLeftPct) + "%";
+    lastBand.style.top = "0";
+    lastBand.style.bottom = "0";
+    lastBand.style.zIndex = "-1";
+
+    lastBand.style.background =
+      bandIndex % 2 === 0
+        ? "rgba(0,0,0,0.05)"
+        : "rgba(0,0,0,0.15)";
+
+    dayTrack.appendChild(lastBand);
 }
 
       slider.min = 0;
