@@ -312,14 +312,15 @@
 
 .day-label {
   position: absolute;
-  top: 0;
+  top: 2px;
   transform: translateX(-50%);
   font-size: 14px;
+  font-weight: 700;
   color: rgba(0,0,0,0.65);
   white-space: nowrap;
 }
 
-/* Gjør første dag litt tydeligere */
+/* Gjør om du vil første dag litt tydeligere */
 .day-tick.first {
   background: #000;
   height: 12px;
@@ -442,6 +443,58 @@ input[type="range"]::-moz-range-thumb {
   margin: 0;
 }
 
+    .wind-station-icon {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .wind-station-ring {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+
+      background: rgba(255,255,255,0.95);
+      border: 2px solid #333;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-family: system-ui, Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #111;
+
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+
+    .wind-station-wrap {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+
+    .wind-station-arrow {
+      position: absolute;
+
+      left: 13px;
+      top: -18px;
+
+      width: 34px;
+      height: 34px;
+
+      font-size: 28px;
+      font-weight: 900;
+
+      color: #111;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
   </style>
 
 </head>
@@ -452,7 +505,7 @@ input[type="range"]::-moz-range-thumb {
 
   <div class="panel">
     <div class="panel-topline">
-      <div class="panel-title">Tidspunkt</div>
+    <div class="panel-title">Tid</div>
       <div class="panel-time" id="timeLabel">Laster...</div>
     </div>
 
@@ -558,9 +611,13 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <script type="module">
-      import { spots } from "./spots.js?v=2026-04-20-21";
-    
-
+    import { spots } from "./spots.js?v=2026-04-20-21";
+    import { windStations } from "./windStations.js?v=2026-07-23-1";
+      console.log("FIL:", import.meta.url);
+      console.log(windStations);
+      
+      console.log("Vindstasjoner:", windStations);
+      
       
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -568,8 +625,13 @@ input[type="range"]::-moz-range-thumb {
     
       // --- Cache (én gang) ---
       const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutter
-      const CACHE_PREFIX = "omForecast:v21:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
+      const CACHE_PREFIX = "omForecast:v22:"; // Endre fra f.eks v5 til v6, og også dato versjon over 2026-04-26-6  
       
+      const FROST_PROXY =
+        "https://vindspotter-frost.dagmagnus-eriksen.workers.dev";
+        
+        const VEGVESEN_PROXY =
+          "https://din-vegvesen-proxy.workers.dev";
 
       // ---------- Konfig ----------
         const MAX_STEPS = 120; // ca 120 tidssteg i slider
@@ -720,6 +782,8 @@ const layer = L.markerClusterGroup({
 
 
 const overlayLayer = L.layerGroup().addTo(map);
+
+const windStationLayer = L.layerGroup().addTo(map);
 
 function updateOverlayVisibility() {
   const zoom = map.getZoom();
@@ -981,6 +1045,64 @@ function symbolToEmoji(code, tempC, isoTime) {
       });
     }
 
+
+     function windStationIcon(speed, dir = 45) {
+
+  return L.divIcon({
+    className: "wind-station-icon",
+
+    html: `
+      <svg
+        width="44"
+        height="44"
+        viewBox="0 0 44 44"
+        style="overflow: visible;">
+
+        <g transform="rotate(${dir} 22 22)">
+
+          <line
+            x1="22"
+            y1="6"
+            x2="22"
+            y2="38"
+            stroke="#111"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+
+          <polygon
+            points="22,4 17,12 27,12"
+            fill="#111"
+          />
+        </g>
+
+        <circle
+          cx="22"
+          cy="22"
+          r="10"
+          fill="white"
+          stroke="#111"
+          stroke-width="2"
+        />
+
+        <text
+          x="22"
+          y="26"
+          text-anchor="middle"
+          font-size="11"
+          font-weight="700"
+          fill="#111">
+          ${speed}
+        </text>
+
+      </svg>
+    `,
+
+    iconSize: [44,44],
+    iconAnchor: [22,22]
+  });
+}
+
     // ---------- Data: forecast per spot ----------
     const forecastsBySpot = {};
     let timeline = [];
@@ -1013,6 +1135,7 @@ function saveCache(key, mapByTime) {
     // ignore (storage full etc.)
   }
 }
+
 
 // sleep(ms) har du allerede, ellers:
 // function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -1105,6 +1228,114 @@ async function fetchForecastForSpot(spot) {
     return mapByTime;
     }
 
+    async function fetchLatestWindData(sourceId) {
+
+      const [windRes, dirRes] = await Promise.all([
+
+        fetch(
+          `${FROST_PROXY}/observations?sources=${sourceId}&elements=wind_speed&referencetime=latest`
+        ),
+
+        fetch(
+          `${FROST_PROXY}/observations?sources=${sourceId}&elements=wind_from_direction&referencetime=latest`
+        )
+
+      ]);
+
+      const wind = await windRes.json();
+      const dir = await dirRes.json();
+
+      return {
+        speed:
+          wind.data?.[0]?.observations?.[0]?.value ?? null,
+
+        direction:
+          dir.data?.[0]?.observations?.[0]?.value ?? null
+      };
+    }
+
+    async function fetchLatestVegvesenWindData(stationId) {
+
+        const url =
+          `${VEGVESEN_PROXY}/fieldstation/${stationId}/data/measured`;
+
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          throw new Error(`Vegvesen-feil ${res.status} for stationId ${stationId}`);
+        }
+
+        const json = await res.json();
+
+        const measured =
+          json.weatherData?.[0]?.measuredWeatherData || {};
+
+        const speed =
+          measured.VM?.[0]?.value ?? null;
+
+        const gust =
+          measured.VKH10?.[0]?.value ?? null;
+
+        return {
+          speed: Number(speed),
+          gust: Number(gust),
+
+          // Vegvesen-responsen du fant inneholder ikke vindretning.
+          direction: null
+        };
+}
+
+
+    async function renderWindStations() {
+
+      windStationLayer.clearLayers();
+
+      for (const station of windStations) {
+
+        try {
+
+          let data;
+
+          if (station.source === "vegvesen") {
+          data = await fetchLatestVegvesenWindData(station.stationId);
+        } else {
+          data = await fetchLatestWindData(station.sourceId);
+        }
+
+        console.log(station.name, data);
+
+       if (!Number.isFinite(data.speed)) {
+        continue;
+        }   
+
+          const windTo =
+          Number.isFinite(data.direction)
+            ? (data.direction + 180) % 360
+            : 0;
+
+          L.marker(
+            [station.lat, station.lng],
+            {
+              pane: "windPane",
+
+              icon: windStationIcon(
+                Math.round(data.speed),
+                windTo
+              )
+            }
+          ).addTo(windStationLayer);
+
+        } catch (err) {
+
+          console.error(
+            station.name,
+            err
+          );
+
+        }
+
+      }
+    }
 
     function buildTimelineIntersection(maps, maxSteps) {
       const masterTimes = Array.from(maps[0].keys());
@@ -1241,28 +1472,27 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         const drawColor =
           status.color === "red" ? BAD_CONDITION_COLOR : status.color;
 
-        const gustTxt = Number.isFinite(windGust)
-          ? ` (${Math.round(windGust)})`
-          : "";
+       const gustTxt = Number.isFinite(windGust)
+  ? ` (${Math.round(windGust)})`
+  : "";
 
-          
-        // HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
-        const circle = L.marker([spot.lat, spot.lng], {
-          icon: L.divIcon({
-            className: "spot-main-marker",
-            html: `
-              <div style="
-                width:20px;
-                height:20px;
-                border-radius:50%;
-                border:3px solid ${drawColor};
-                background:rgba(255,255,255,0.25);
-              "></div>
-            `,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
-          }),
-        }).addTo(layer);
+// HOVEDMARKØR: denne er den eneste som skal inn i cluster-laget
+const circle = L.marker([spot.lat, spot.lng], {
+  icon: L.divIcon({
+    className: "spot-main-marker",
+    html: `
+      <div style="
+        width:20px;
+        height:20px;
+        border-radius:50%;
+        border:3px solid ${drawColor};
+        background:rgba(255,255,255,0.25);
+      "></div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  }),
+}).addTo(layer);
 
         circle.on("click", (e) => {
           L.DomEvent.stop(e);
@@ -1311,7 +1541,7 @@ function collectSpeedsForBin(mapByTime, isoTime) {
         // Vindtekst
         L.marker([spot.lat, spot.lng], {
           pane: "windPane",
-          icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
+        icon: windSpeedIcon(`${displayWind.toFixed(1)}${gustTxt} m/s`),
           interactive: false,
           zIndexOffset: 1250,
         }).addTo(overlayLayer);
@@ -1384,8 +1614,9 @@ function collectSpeedsForBin(mapByTime, isoTime) {
 
   // Label-format (dato)
   const fmtDate = (d) =>
-    d.toLocaleDateString("no-NO", { weekday: "short", day: "2-digit", month: "2-digit" });
-
+  d.toLocaleDateString("no-NO", { weekday: "short" })
+    .replace(".", "");   // man, tir, ons ...
+    
   // Start og slutt basert på timeline
   const startMs = Date.parse(timeline[0]);
   const endMs   = Date.parse(timeline[maxIndex]);
@@ -1438,11 +1669,25 @@ let bandIndex = 0;
     tick.style.left = leftPct + "%";
     dayTrack.appendChild(tick);
 
-    const label = document.createElement("div");
-    label.className = "day-label" + (isFirst ? " first" : "");
-    label.style.left = leftPct + "%";
-    label.textContent = fmtDate(d);
-    dayTrack.appendChild(label);
+    const nextDay = new Date(d);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    if (nextDay.getTime() <= endMs) {
+
+      const nextIdx = findIndexForTimeMs(nextDay.getTime());
+      const nextLeftPct = (nextIdx / maxIndex) * 100;
+
+      const label = document.createElement("div");
+      label.className = "day-label";
+
+      // Midt mellom denne og neste ticker
+      const centerPct = leftPct + ((nextLeftPct - leftPct) / 2);
+
+      label.style.left = centerPct + "%";
+      label.textContent = fmtDate(d);
+
+      dayTrack.appendChild(label);
+    }
 
     // neste døgn (lokal tid)
     d = new Date(d);
@@ -1474,6 +1719,7 @@ let bandIndex = 0;
 
       renderAtIndex(0);
       updateOverlayVisibility();
+      await renderWindStations();
     //  console.log("Antall markører i cluster:", layer.getLayers().length);
 
       statusMsg.textContent = "";
@@ -1635,12 +1881,18 @@ map.on("zoomend", () => {
   updateOverlayVisibility();
 });
 
+
     // Start
     loadAll().catch(err => {
       console.error(err);
       statusMsg.textContent = "Feil";
       timeLabel.textContent = "Kunne ikke laste data. Se Console (F12).";
     });
+
+    setInterval(() => {
+      renderWindStations();
+    }, 10 * 60 * 1000);
+
   </script>
 </body>
 </html>
