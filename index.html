@@ -722,6 +722,10 @@ input[type="range"]::-moz-range-thumb {
           <input type="checkbox" id="sportWing" checked>
           Wing
         </label>
+        <label>
+        <input type="checkbox" id="toggleMeasurements" checked>
+        Målinger
+        </label>  
       </div>
     `;
 
@@ -730,6 +734,7 @@ input[type="range"]::-moz-range-thumb {
 
     const kiteBox = container.querySelector("#sportKite");
     const wingBox = container.querySelector("#sportWing");
+    const measurementsBox =  container.querySelector("#toggleMeasurements");
     
    // console.log("kiteBox:", kiteBox, "wingBox:", wingBox);
     
@@ -741,6 +746,10 @@ input[type="range"]::-moz-range-thumb {
 
     kiteBox.addEventListener("change", updateFilter);
     wingBox.addEventListener("change", updateFilter);
+
+    measurementsBox.addEventListener("change", () => {
+      updateOverlayVisibility();
+    });
 
     return container;
   }
@@ -786,6 +795,7 @@ const overlayLayer = L.layerGroup().addTo(map);
 const windStationLayer = L.layerGroup().addTo(map);
 
 function updateOverlayVisibility() {
+
   const zoom = map.getZoom();
 
   if (zoom >= CLUSTER_ZOOM) {
@@ -796,6 +806,23 @@ function updateOverlayVisibility() {
     if (map.hasLayer(overlayLayer)) {
       map.removeLayer(overlayLayer);
     }
+  }
+
+  const showMeasurements =
+    document.getElementById("toggleMeasurements")?.checked;
+
+  if (showMeasurements) {
+
+    if (!map.hasLayer(windStationLayer)) {
+      map.addLayer(windStationLayer);
+    }
+
+  } else {
+
+    if (map.hasLayer(windStationLayer)) {
+      map.removeLayer(windStationLayer);
+    }
+
   }
 }
 
