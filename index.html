@@ -611,12 +611,12 @@ input[type="range"]::-moz-range-thumb {
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <script type="module">
-    import { spots } from "./spots.js?v=2026-04-20-21";
-    import { windStations } from "./windStations.js?v=2026-07-23-1";
-      console.log("FIL:", import.meta.url);
-      console.log(windStations);
+    import { spots } from "./spots.js?v=2026-04-20-22";
+    import { windStations } from "./windStations.js?v=2026-07-25-1";
+    //  console.log("FIL:", import.meta.url);
+     // console.log(windStations);
       
-      console.log("Vindstasjoner:", windStations);
+    //  console.log("Vindstasjoner:", windStations);
       
       
     function sleep(ms) {
@@ -630,8 +630,8 @@ input[type="range"]::-moz-range-thumb {
       const FROST_PROXY =
         "https://vindspotter-frost.dagmagnus-eriksen.workers.dev";
         
-        const VEGVESEN_PROXY =
-          "https://din-vegvesen-proxy.workers.dev";
+      const VEGVESEN_PROXY =
+        "https://vindspotter-vegvesen.dagmagnus-eriksen.workers.dev";
 
       // ---------- Konfig ----------
         const MAX_STEPS = 120; // ca 120 tidssteg i slider
@@ -1286,56 +1286,55 @@ async function fetchForecastForSpot(spot) {
 }
 
 
-    async function renderWindStations() {
+const stationResults = await Promise.allSettled(
 
-      windStationLayer.clearLayers();
+  windStations.map(async (station) => {
 
-      for (const station of windStations) {
+    let data;
 
-        try {
-
-          let data;
-
-          if (station.source === "vegvesen") {
-          data = await fetchLatestVegvesenWindData(station.stationId);
-        } else {
-          data = await fetchLatestWindData(station.sourceId);
-        }
-
-        console.log(station.name, data);
-
-       if (!Number.isFinite(data.speed)) {
-        continue;
-        }   
-
-          const windTo =
-          Number.isFinite(data.direction)
-            ? (data.direction + 180) % 360
-            : 0;
-
-          L.marker(
-            [station.lat, station.lng],
-            {
-              pane: "windPane",
-
-              icon: windStationIcon(
-                Math.round(data.speed),
-                windTo
-              )
-            }
-          ).addTo(windStationLayer);
-
-        } catch (err) {
-
-          console.error(
-            station.name,
-            err
-          );
-
-        }
-
-      }
+    if (station.source === "vegvesen") {
+      data = await fetchLatestVegvesenWindData(
+        station.stationId
+      );
+    } else {
+      data = await fetchLatestWindData(
+        station.sourceId
+      );
     }
+
+    return { station, data };
+
+  })
+
+);
+
+   for (const result of stationResults) {
+
+  if (result.status !== "fulfilled")
+    continue;
+
+  const { station, data } = result.value;
+
+  if (!Number.isFinite(data.speed))
+    continue;
+
+  const windTo =
+    Number.isFinite(data.direction)
+      ? (data.direction + 180) % 360
+      : 0;
+
+  L.marker(
+    [station.lat, station.lng],
+    {
+      pane: "windPane",
+      icon: windStationIcon(
+        Math.round(data.speed),
+        windTo
+      )
+    }
+  ).addTo(windStationLayer);
+
+}
 
     function buildTimelineIntersection(maps, maxSteps) {
       const masterTimes = Array.from(maps[0].keys());
